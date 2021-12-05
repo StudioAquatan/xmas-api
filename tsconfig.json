@@ -19,7 +19,8 @@
     "removeComments": false,
     "pretty": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "lib"
+    "outDir": "dist",
+    "esModuleInterop": true
   },
   "include": [
     "./src/**/*"
