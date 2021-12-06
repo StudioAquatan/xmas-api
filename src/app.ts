@@ -5,7 +5,9 @@ import session from 'express-session';
 import morgan from 'morgan';
 import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
+import { createConnection } from 'typeorm';
 import { config } from './config';
+import { UserModel } from './models/user';
 
 passport.use(
   new TwitterStrategy(
@@ -14,12 +16,34 @@ passport.use(
       consumerKey: config.twitter.consumerKey,
       consumerSecret: config.twitter.consumerSecret,
     },
-    (accessToken, accessSecret, profile, done) => {
-      console.log(accessToken, accessSecret, profile);
+    async (accessToken, accessSecret, profile, done) => {
+      let user = await UserModel.findOne(profile.id);
+      if (!user) {
+        user = UserModel.create({
+          userId: profile.id,
+          accessToken,
+          accessSecret,
+          screenName: profile.username,
+        });
+      }
+      user.accessToken = accessToken;
+      user.accessSecret = accessSecret;
+
+      await user.save();
+
       done(null, profile.id);
     },
   ),
 );
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser(async (id, done) => {
+  const user = await UserModel.findOne(id as string);
+  done(null, user);
+});
 
 const app = express();
 
@@ -33,4 +57,13 @@ app.use(passport.session());
 
 app.get('/api/twitter/login', passport.authenticate('twitter'));
 
-app.listen(3000);
+(async () => {
+  await createConnection({
+    entities: [UserModel],
+    type: 'sqlite',
+    database: './data.db',
+    synchronize: true,
+  });
+  console.log('Database connection established');
+  app.listen(3000, () => console.log('Http server started'));
+})();
