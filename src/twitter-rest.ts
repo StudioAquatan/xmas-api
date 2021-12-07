@@ -26,6 +26,24 @@ restAPIRouter.post('/subscribeWebhook', async (req, res, next) => {
   }
 });
 
+restAPIRouter.post('/useStream', async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).end();
+    }
+
+    twitterStream.setRunnerUser(req.user);
+    twitterStream.start();
+
+    req.user.useStream = true;
+    await req.user.save();
+
+    res.status(200).end();
+  } catch (e) {
+    next(e);
+  }
+});
+
 restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
   try {
     if (!req.user) {
@@ -53,7 +71,9 @@ restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
 
     const newRule = await HashtagMonitorModel.findOne({ hashtag });
 
-    twitterStream.setRunnerUser(req.user);
+    if (!twitterStream.hasRunnerUser()) {
+      twitterStream.setRunnerUser(req.user);
+    }
     twitterStream.start();
 
     res.json({

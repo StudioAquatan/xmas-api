@@ -53,6 +53,10 @@ class TwitterStream {
     this.runnerUser = user;
   };
 
+  hasRunnerUser = () => {
+    return !!this.runnerUser;
+  };
+
   start = async () => {
     if (!this.runnerUser) {
       throw new Error('runnerUser is not set');
