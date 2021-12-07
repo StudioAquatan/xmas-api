@@ -91,7 +91,20 @@ passport.deserializeUser(async (id, done) => {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.get('/api/twitter/login', passport.authenticate('twitter'));
+  app.get(
+    '/api/twitter/login',
+    (req, res, next) => {
+      if (req.user) {
+        res.redirect('/');
+      } else {
+        next();
+      }
+    },
+    passport.authenticate('twitter', {
+      successRedirect: '/',
+      successReturnToOrRedirect: '/',
+    }),
+  );
   app.use('/api/twitter', webhookRouter);
   app.use('/api/twitter', restAPIRouter);
   app.listen(3000, () => console.log('Http server started'));
