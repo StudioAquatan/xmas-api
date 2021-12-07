@@ -1,3 +1,5 @@
+import { TwitterApi } from 'twitter-api-v2';
+import { config } from './config';
 import { UserModel } from './models/user';
 
 interface WebhookResponse {
@@ -10,7 +12,8 @@ type WebhookListResponse = Array<WebhookResponse>;
 
 export const registerWebhook = async (user: UserModel, url: string) => {
   const client = user.getClient();
-  const list = await client.v1.get<WebhookListResponse>(
+  const bearerClient = new TwitterApi(config.twitter.bearerToken);
+  const list = await bearerClient.v1.get<WebhookListResponse>(
     'account_activity/webhooks.json',
   );
 
