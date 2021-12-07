@@ -18,7 +18,7 @@ export const registerWebhook = async (
   const client = user.getClient();
   const bearerClient = new TwitterApi(config.twitter.bearerToken);
   const list = await bearerClient.v1.get<WebhookListResponse>(
-    'account_activity/all/webhooks.json',
+    `account_activity/all/${envName}/webhooks.json`,
   );
 
   const hook = list.find((item) => item.url === url);
