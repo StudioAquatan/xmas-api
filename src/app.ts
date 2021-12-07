@@ -15,6 +15,7 @@ import {
 } from './models/monitor';
 import { SessionModel } from './models/session';
 import { UserModel } from './models/user';
+import { restAPIRouter } from './twitter-rest';
 import { webhookRouter } from './twitter-webhook';
 
 passport.use(
@@ -92,5 +93,6 @@ passport.deserializeUser(async (id, done) => {
 
   app.get('/api/twitter/login', passport.authenticate('twitter'));
   app.use('/api/twitter', webhookRouter);
+  app.use('/api/twitter', restAPIRouter);
   app.listen(3000, () => console.log('Http server started'));
 })();

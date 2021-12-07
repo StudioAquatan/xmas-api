@@ -12,5 +12,6 @@ export const config = {
     webhookUrl:
       process.env.TWITTER_WEBHOOK_URL ??
       'http://localhost:3000/api/twitter/webhook',
+    webhookEnv: process.env.TWITTER_WEBHOOK_ENV ?? 'development',
   },
 };
