@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { config } from './config';
-import { HashtagMonitorModel } from './models/monitor';
+import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
 import { twitterStream } from './twitter-stream';
 import { registerWebhook, subscribeWebhook } from './twitter-webhook-api';
 
@@ -22,7 +22,7 @@ restAPIRouter.post('/subscribeWebhook', async (req, res) => {
   res.status(200).end();
 });
 
-restAPIRouter.put('/monitorTweet', async (req, res) => {
+restAPIRouter.put('/monitor/hashtag', async (req, res) => {
   if (!req.user) {
     return res.status(401).end();
   }
@@ -59,7 +59,7 @@ restAPIRouter.put('/monitorTweet', async (req, res) => {
   });
 });
 
-restAPIRouter.get('/monitorTweet', async (req, res) => {
+restAPIRouter.get('/monitor/hashtag', async (req, res) => {
   if (!req.user) {
     return res.status(401).end();
   }
@@ -75,7 +75,7 @@ restAPIRouter.get('/monitorTweet', async (req, res) => {
   );
 });
 
-restAPIRouter.delete('/monitorTweet/:id', async (req, res) => {
+restAPIRouter.delete('/monitor/hashtag/:id', async (req, res) => {
   if (!req.user) {
     return res.status(401).end();
   }
@@ -92,6 +92,57 @@ restAPIRouter.delete('/monitorTweet/:id', async (req, res) => {
 
   rule.active = false;
   await rule.save();
+
+  res.status(200).end();
+});
+
+restAPIRouter.get('/monitor/tweet', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).end();
+  }
+
+  const rules = await TweetMonitorModel.find();
+  res.json(
+    rules.map((rule) => ({
+      tweetId: rule.tweetId,
+      replyCount: rule.replyCount,
+      retweetCount: rule.retweetCount,
+      favCount: rule.favCount,
+    })),
+  );
+});
+
+restAPIRouter.put('/monitor/tweet/:id', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).end();
+  }
+
+  const tweetId = req.params.id;
+
+  let rule = await TweetMonitorModel.findOne({ tweetId });
+  if (!rule) {
+    rule = TweetMonitorModel.create({
+      tweetId,
+    });
+    await rule.save();
+  }
+
+  res.status(200).end();
+});
+
+restAPIRouter.delete('/monitor/tweet/:id', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).end();
+  }
+
+  const tweetId = req.params.id;
+
+  const rule = await TweetMonitorModel.findOne({ tweetId });
+  if (!rule) {
+    return res.status(404).end();
+  }
+
+  await rule.remove();
 
   res.status(200).end();
 });
