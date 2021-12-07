@@ -18,15 +18,31 @@ class TwitterStream {
       autoConnect: true,
     });
 
-    this.stream.on(ETwitterStreamEvent.Data, (data) => {
-      console.log(data);
+    this.stream.on(ETwitterStreamEvent.Data, async (data) => {
+      const hashtags = await HashtagMonitorModel.find({ active: true });
+      const matchedTag = hashtags.find(({ hashtag }) =>
+        data.entities.hashtags?.find(
+          ({ text }) => text.replace(/#/, '') === hashtag,
+        ),
+      );
+      if (!matchedTag) return;
+
+      console.log('increase', matchedTag.hashtag);
+
+      await HashtagMonitorModel.createQueryBuilder()
+        .update()
+        .where({
+          id: matchedTag.id,
+        })
+        .set({ count: () => 'count + 1' })
+        .execute();
     });
 
     await this.stream.connect();
   };
 
   private getAllHashtags = async () => {
-    const hashtags = await HashtagMonitorModel.find();
+    const hashtags = await HashtagMonitorModel.find({ active: true });
 
     return hashtags.map(({ hashtag }) => hashtag);
   };
@@ -41,12 +57,11 @@ class TwitterStream {
     }
     if (this.stream) {
       this.stream.close();
+      await sleep(1000);
     }
 
     const hashtags = await this.getAllHashtags();
     if (hashtags.length > 0) {
-      await sleep(1000);
-
       console.log('Stream listener start');
       this.startStreamForHashtags(this.runnerUser, await this.getAllHashtags());
     }
