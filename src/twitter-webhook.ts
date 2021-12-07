@@ -68,7 +68,11 @@ event.onTweetCreate(async (response) => {
         .where({
           tweetId: monitor.tweetId,
         })
-        .set({ retweetCount: tweet.retweeted_status?.retweet_count })
+        .set({
+          retweetCount: tweet.retweeted_status?.retweet_count,
+          favCount: tweet.retweeted_status?.favorite_count,
+          replyCount: tweet.retweeted_status?.reply_count,
+        })
         .execute();
     }
   }
@@ -96,7 +100,11 @@ event.onFavorite(async (response) => {
       .where({
         tweetId: monitor.tweetId,
       })
-      .set({ retweetCount: fav.favorited_status.favorite_count })
+      .set({
+        favCount: fav.favorited_status.favorite_count,
+        retweetCount: fav.favorited_status.retweet_count,
+        replyCount: fav.favorited_status.reply_count,
+      })
       .execute();
   }
 });
