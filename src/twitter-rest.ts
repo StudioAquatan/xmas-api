@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { config } from './config';
 import { HashtagMonitorModel } from './models/monitor';
+import { twitterStream } from './twitter-stream';
 import { registerWebhook, subscribeWebhook } from './twitter-webhook-api';
 
 export const restAPIRouter = Router();
@@ -46,6 +47,10 @@ restAPIRouter.put('/monitorTweet', async (req, res) => {
   });
 
   const newRule = await HashtagMonitorModel.findOne({ hashtag });
+
+  twitterStream.setRunnerUser(req.user);
+  twitterStream.start();
+
   res.json({
     id: newRule?.id,
     hashtag: newRule?.hashtag,
