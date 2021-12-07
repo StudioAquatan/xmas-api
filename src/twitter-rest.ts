@@ -41,11 +41,10 @@ restAPIRouter.put('/monitor/hashtag', async (req, res) => {
     return res.status(409).json({ error: 'Same rule found' });
   }
 
-  await HashtagMonitorModel.insert({
+  await HashtagMonitorModel.create({
     hashtag,
     count: 0,
-    active: true,
-  });
+  }).save();
 
   const newRule = await HashtagMonitorModel.findOne({ hashtag });
 
