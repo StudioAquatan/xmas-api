@@ -70,6 +70,7 @@ passport.deserializeUser(async (id, done) => {
 
   const app = express();
 
+  app.use(morgan('combined'));
   app.use(cookieParser());
   app.use(urlencoded({ extended: true }));
   app.use(json());
@@ -86,7 +87,6 @@ passport.deserializeUser(async (id, done) => {
     }),
   );
 
-  app.use(morgan('combined'));
   app.use(passport.initialize());
   app.use(passport.session());
 
