@@ -6,6 +6,18 @@ import { registerWebhook, subscribeWebhook } from './twitter-webhook-api';
 
 export const restAPIRouter = Router();
 
+restAPIRouter.get('/', async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).end();
+    }
+
+    res.json(req.user);
+  } catch (e) {
+    next(e);
+  }
+});
+
 restAPIRouter.post('/subscribeWebhook', async (req, res, next) => {
   try {
     if (!req.user) {
@@ -76,11 +88,7 @@ restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
     }
     twitterStream.start();
 
-    res.json({
-      id: newRule?.id,
-      hashtag: newRule?.hashtag,
-      count: newRule?.count,
-    });
+    res.json(newRule);
   } catch (e) {
     next(e);
   }
@@ -93,14 +101,7 @@ restAPIRouter.get('/monitor/hashtag', async (req, res, next) => {
     }
 
     const rules = await HashtagMonitorModel.find();
-    res.json(
-      rules.map((rule) => ({
-        id: rule.id,
-        hashtag: rule.hashtag,
-        count: rule.count,
-        active: rule.active,
-      })),
-    );
+    res.json(rules.map((rule) => rule));
   } catch (e) {
     next(e);
   }
@@ -138,14 +139,7 @@ restAPIRouter.get('/monitor/tweet', async (req, res, next) => {
     }
 
     const rules = await TweetMonitorModel.find();
-    res.json(
-      rules.map((rule) => ({
-        tweetId: rule.tweetId,
-        replyCount: rule.replyCount,
-        retweetCount: rule.retweetCount,
-        favCount: rule.favCount,
-      })),
-    );
+    res.json(rules.map((rule) => rule));
   } catch (e) {
     next(e);
   }
