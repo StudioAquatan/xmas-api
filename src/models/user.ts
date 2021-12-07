@@ -16,6 +16,9 @@ export class UserModel extends BaseEntity {
   @Column('varchar', { length: 64 })
   screenName = '';
 
+  @Column('boolean')
+  webhookActivated = false;
+
   getClient() {
     return new TwitterApi({
       appKey: config.twitter.consumerKey,

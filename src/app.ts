@@ -17,6 +17,7 @@ import { SessionModel } from './models/session';
 import { UserModel } from './models/user';
 import { restAPIRouter } from './twitter-rest';
 import { webhookRouter } from './twitter-webhook';
+import { registerWebhook } from './twitter-webhook-api';
 
 passport.use(
   new TwitterStrategy(
@@ -37,6 +38,14 @@ passport.use(
       }
       user.accessToken = accessToken;
       user.accessSecret = accessSecret;
+
+      if (!user.webhookActivated) {
+        await registerWebhook(
+          user,
+          config.twitter.webhookEnv,
+          config.twitter.webhookUrl,
+        );
+      }
 
       await user.save();
 
@@ -107,5 +116,6 @@ passport.deserializeUser(async (id, done) => {
   );
   app.use('/api/twitter', webhookRouter);
   app.use('/api/twitter', restAPIRouter);
+
   app.listen(3000, () => console.log('Http server started'));
 })();
