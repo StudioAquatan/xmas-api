@@ -16,6 +16,7 @@ import {
 import { SessionModel } from './models/session';
 import { UserModel } from './models/user';
 import { restAPIRouter } from './twitter-rest';
+import { twitterStream } from './twitter-stream';
 import { webhookRouter } from './twitter-webhook';
 import { registerWebhook } from './twitter-webhook-api';
 
@@ -92,6 +93,7 @@ passport.deserializeUser(async (id, done) => {
 
   const sessionRepository = connection.getRepository<ISession>(SessionModel);
   app.use(
+    '/api',
     session({
       secret: 'keyboard cat',
       store: new TypeormStore({
@@ -103,7 +105,7 @@ passport.deserializeUser(async (id, done) => {
   );
 
   app.use(passport.initialize());
-  app.use(passport.session());
+  app.use('/api', passport.session());
 
   app.get(
     '/api/twitter/login',
@@ -123,4 +125,10 @@ passport.deserializeUser(async (id, done) => {
   app.use('/api/twitter', restAPIRouter);
 
   app.listen(3000, () => console.log('Http server started'));
+
+  const user = await UserModel.findOne({ useStream: true });
+  if (user) {
+    twitterStream.setRunnerUser(user);
+    twitterStream.start();
+  }
 })();

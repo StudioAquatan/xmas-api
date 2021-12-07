@@ -19,6 +19,9 @@ export class UserModel extends BaseEntity {
   @Column('boolean')
   webhookActivated = false;
 
+  @Column('boolean')
+  useStream = false;
+
   getClient() {
     return new TwitterApi({
       appKey: config.twitter.consumerKey,
