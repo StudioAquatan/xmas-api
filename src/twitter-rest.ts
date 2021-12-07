@@ -44,6 +44,7 @@ restAPIRouter.put('/monitorTweet', async (req, res) => {
   await HashtagMonitorModel.insert({
     hashtag,
     count: 0,
+    active: true,
   });
 
   const newRule = await HashtagMonitorModel.findOne({ hashtag });
@@ -56,4 +57,41 @@ restAPIRouter.put('/monitorTweet', async (req, res) => {
     hashtag: newRule?.hashtag,
     count: newRule?.count,
   });
+});
+
+restAPIRouter.get('/monitorTweet', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).end();
+  }
+
+  const rules = await HashtagMonitorModel.find();
+  res.json(
+    rules.map((rule) => ({
+      id: rule.id,
+      hashtag: rule.hashtag,
+      count: rule.count,
+      active: rule.active,
+    })),
+  );
+});
+
+restAPIRouter.delete('/monitorTweet/:id', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).end();
+  }
+
+  const ruleId = Number(req.params.id);
+  if (isNaN(ruleId)) {
+    return res.status(400).end();
+  }
+
+  const rule = await HashtagMonitorModel.findOne({ id: ruleId });
+  if (!rule) {
+    return res.status(404).end();
+  }
+
+  rule.active = false;
+  await rule.save();
+
+  res.status(200).end();
 });

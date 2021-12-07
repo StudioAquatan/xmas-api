@@ -32,7 +32,7 @@ export class HashtagMonitorModel extends BaseEntity {
   @Column('int')
   count = 0;
 
-  @Column('bool')
+  @Column('boolean')
   active = true;
 }
 
