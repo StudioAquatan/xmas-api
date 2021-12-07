@@ -31,6 +31,9 @@ export class HashtagMonitorModel extends BaseEntity {
 
   @Column('int')
   count = 0;
+
+  @Column('bool')
+  active = true;
 }
 
 @Entity()
@@ -52,4 +55,25 @@ export class HashtagTweet extends BaseEntity {
 
   @Column('int')
   ruleId = 0;
+}
+
+@Entity()
+export class ReplyTweet extends BaseEntity {
+  @PrimaryColumn('bigint')
+  tweetId = '0';
+
+  @Column('varchar', { length: 512 })
+  text = '';
+
+  @Column('bigint')
+  userId = '0';
+
+  @Column('varchar', { length: 64 })
+  screenName = '';
+
+  @Column('date')
+  tweetAt?: Date;
+
+  @Column('bigint')
+  replyToId = '0';
 }
