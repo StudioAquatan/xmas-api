@@ -15,6 +15,7 @@ import {
 } from './models/monitor';
 import { SessionModel } from './models/session';
 import { UserModel } from './models/user';
+import { webhookRouter } from './twitter-webhook';
 
 passport.use(
   new TwitterStrategy(
@@ -90,5 +91,6 @@ passport.deserializeUser(async (id, done) => {
   app.use(passport.session());
 
   app.get('/api/twitter/login', passport.authenticate('twitter'));
+  app.use('/api/twitter', webhookRouter);
   app.listen(3000, () => console.log('Http server started'));
 })();
