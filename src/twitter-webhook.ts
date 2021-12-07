@@ -28,40 +28,77 @@ webhookRouter.post('/webhook', (req, res) => {
 });
 
 event.onTweetCreate(async (response) => {
-  const user = await UserModel.findOne({ userId: response.for_user_id });
-  if (!user) return;
+  try {
+    const user = await UserModel.findOne({ userId: response.for_user_id });
+    if (!user) return;
 
-  for (const tweet of response.tweet_create_events as unknown as TweetV1[]) {
-    if (tweet.in_reply_to_status_id_str) {
-      const monitor = await TweetMonitorModel.findOne({
-        tweetId: tweet.in_reply_to_status_id_str,
-      });
-      if (!monitor) continue;
+    for (const tweet of response.tweet_create_events as unknown as TweetV1[]) {
+      if (tweet.in_reply_to_status_id_str) {
+        const monitor = await TweetMonitorModel.findOne({
+          tweetId: tweet.in_reply_to_status_id_str,
+        });
+        if (!monitor) continue;
 
-      console.log('reply', monitor.tweetId, '->', tweet.id_str, tweet.text);
-      await TweetMonitorModel.createQueryBuilder()
-        .update()
-        .where({
-          tweetId: monitor.tweetId,
-        })
-        .set({ replyCount: () => 'replyCount + 1' })
-        .execute();
-    } else if (
-      tweet.retweeted_status?.id_str &&
-      user.userId !== tweet.user.id_str
-    ) {
+        console.log('reply', monitor.tweetId, '->', tweet.id_str, tweet.text);
+        await TweetMonitorModel.createQueryBuilder()
+          .update()
+          .where({
+            tweetId: monitor.tweetId,
+          })
+          .set({ replyCount: () => 'replyCount + 1' })
+          .execute();
+      } else if (
+        tweet.retweeted_status?.id_str &&
+        user.userId !== tweet.user.id_str
+      ) {
+        const monitor = await TweetMonitorModel.findOne({
+          tweetId: tweet.retweeted_status?.id_str,
+        });
+        if (!monitor) continue;
+        console.log(
+          'retweet',
+          monitor.tweetId,
+          ' -> ',
+          tweet.id_str,
+          tweet.user.screen_name,
+          'count:',
+          tweet.retweeted_status?.retweet_count,
+        );
+        await TweetMonitorModel.createQueryBuilder()
+          .update()
+          .where({
+            tweetId: monitor.tweetId,
+          })
+          .set({
+            retweetCount: tweet.retweeted_status?.retweet_count,
+            favCount: tweet.retweeted_status?.favorite_count,
+            replyCount: tweet.retweeted_status?.reply_count,
+          })
+          .execute();
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+event.onFavorite(async (response) => {
+  try {
+    const user = await UserModel.findOne({ userId: response.for_user_id });
+    if (!user) return;
+
+    for (const fav of response.favorite_events) {
       const monitor = await TweetMonitorModel.findOne({
-        tweetId: tweet.retweeted_status?.id_str,
+        tweetId: fav.favorited_status.id_str,
       });
       if (!monitor) continue;
       console.log(
-        'retweet',
+        'fav',
         monitor.tweetId,
-        ' -> ',
-        tweet.id_str,
-        tweet.user.screen_name,
+        ' by ',
+        fav.favorited_status.user.screen_name,
         'count:',
-        tweet.retweeted_status?.retweet_count,
+        fav.favorited_status.favorite_count,
       );
       await TweetMonitorModel.createQueryBuilder()
         .update()
@@ -69,42 +106,13 @@ event.onTweetCreate(async (response) => {
           tweetId: monitor.tweetId,
         })
         .set({
-          retweetCount: tweet.retweeted_status?.retweet_count,
-          favCount: tweet.retweeted_status?.favorite_count,
-          replyCount: tweet.retweeted_status?.reply_count,
+          favCount: fav.favorited_status.favorite_count,
+          retweetCount: fav.favorited_status.retweet_count,
+          replyCount: fav.favorited_status.reply_count,
         })
         .execute();
     }
-  }
-});
-
-event.onFavorite(async (response) => {
-  const user = await UserModel.findOne({ userId: response.for_user_id });
-  if (!user) return;
-
-  for (const fav of response.favorite_events) {
-    const monitor = await TweetMonitorModel.findOne({
-      tweetId: fav.favorited_status.id_str,
-    });
-    if (!monitor) continue;
-    console.log(
-      'fav',
-      monitor.tweetId,
-      ' by ',
-      fav.favorited_status.user.screen_name,
-      'count:',
-      fav.favorited_status.favorite_count,
-    );
-    await TweetMonitorModel.createQueryBuilder()
-      .update()
-      .where({
-        tweetId: monitor.tweetId,
-      })
-      .set({
-        favCount: fav.favorited_status.favorite_count,
-        retweetCount: fav.favorited_status.retweet_count,
-        replyCount: fav.favorited_status.reply_count,
-      })
-      .execute();
+  } catch (e) {
+    console.error(e);
   }
 });

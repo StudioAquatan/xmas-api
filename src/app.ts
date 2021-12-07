@@ -27,29 +27,33 @@ passport.use(
       consumerSecret: config.twitter.consumerSecret,
     },
     async (accessToken, accessSecret, profile, done) => {
-      let user = await UserModel.findOne(profile.id);
-      if (!user) {
-        user = UserModel.create({
-          userId: profile.id,
-          accessToken,
-          accessSecret,
-          screenName: profile.username,
-        });
+      try {
+        let user = await UserModel.findOne(profile.id);
+        if (!user) {
+          user = UserModel.create({
+            userId: profile.id,
+            accessToken,
+            accessSecret,
+            screenName: profile.username,
+          });
+        }
+        user.accessToken = accessToken;
+        user.accessSecret = accessSecret;
+
+        if (!user.webhookActivated) {
+          await registerWebhook(
+            user,
+            config.twitter.webhookEnv,
+            config.twitter.webhookUrl,
+          );
+        }
+
+        await user.save();
+
+        done(null, profile.id);
+      } catch (e) {
+        done(e);
       }
-      user.accessToken = accessToken;
-      user.accessSecret = accessSecret;
-
-      if (!user.webhookActivated) {
-        await registerWebhook(
-          user,
-          config.twitter.webhookEnv,
-          config.twitter.webhookUrl,
-        );
-      }
-
-      await user.save();
-
-      done(null, profile.id);
     },
   ),
 );
