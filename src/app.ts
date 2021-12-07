@@ -46,6 +46,7 @@ passport.use(
             config.twitter.webhookEnv,
             config.twitter.webhookUrl,
           );
+          user.webhookActivated = true;
         }
 
         await user.save();
