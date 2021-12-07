@@ -16,10 +16,10 @@ export class UserModel extends BaseEntity {
   @Column('varchar', { length: 64 })
   screenName = '';
 
-  @Column('boolean')
+  @Column('boolean', { default: false })
   webhookActivated = false;
 
-  @Column('boolean')
+  @Column('boolean', { default: false })
   useStream = false;
 
   getClient() {

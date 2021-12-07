@@ -68,7 +68,7 @@ class TwitterStream {
 
     const hashtags = await this.getAllHashtags();
     if (hashtags.length > 0) {
-      console.log('Stream listener start');
+      console.log('Stream listener start', this.runnerUser.screenName);
       this.startStreamForHashtags(this.runnerUser, await this.getAllHashtags());
     }
   };
