@@ -7,6 +7,11 @@ import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { createConnection } from 'typeorm';
 import { config } from './config';
+import {
+  HashtagMonitorModel,
+  HashtagTweet,
+  TweetMonitorModel,
+} from './models/monitor';
 import { UserModel } from './models/user';
 
 passport.use(
@@ -59,7 +64,7 @@ app.get('/api/twitter/login', passport.authenticate('twitter'));
 
 (async () => {
   await createConnection({
-    entities: [UserModel],
+    entities: [UserModel, TweetMonitorModel, HashtagMonitorModel, HashtagTweet],
     type: 'sqlite',
     database: './data.db',
     synchronize: true,
