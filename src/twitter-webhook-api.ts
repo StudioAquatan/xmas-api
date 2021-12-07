@@ -10,28 +10,29 @@ interface WebhookResponse {
 
 type WebhookListResponse = Array<WebhookResponse>;
 
-export const registerWebhook = async (user: UserModel, url: string) => {
+export const registerWebhook = async (
+  user: UserModel,
+  envName: string,
+  url: string,
+) => {
   const client = user.getClient();
   const bearerClient = new TwitterApi(config.twitter.bearerToken);
   const list = await bearerClient.v1.get<WebhookListResponse>(
-    'account_activity/webhooks.json',
+    'account_activity/all/webhooks.json',
   );
 
   const hook = list.find((item) => item.url === url);
   if (hook) return hook.id;
 
   const response = await client.v1.post<WebhookResponse>(
-    'account_activity/webhooks.json',
-    {},
-    { query: { url } },
+    `account_activity/all/${envName}/webhooks.json`,
+    { url },
   );
 
   return response.id;
 };
 
-export const subscribeWebhook = async (user: UserModel, hookId: string) => {
+export const subscribeWebhook = async (user: UserModel, envName: string) => {
   const client = user.getClient();
-  await client.v1.post(
-    `account_activity/webhooks/${hookId}/subscriptions/all.json`,
-  );
+  await client.v1.post(`account_activity/all/${envName}/subscriptions.json`);
 };
