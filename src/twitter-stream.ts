@@ -18,6 +18,8 @@ class TwitterStream {
       autoConnect: true,
     });
 
+    this.stream.autoReconnect = true;
+
     this.stream.on(ETwitterStreamEvent.Data, async (data) => {
       const hashtags = await HashtagMonitorModel.find({ active: true });
       const matchedTag = hashtags.find(({ hashtag }) =>
