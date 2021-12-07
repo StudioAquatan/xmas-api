@@ -19,6 +19,7 @@
     "passport-instagram": "^1.0.0",
     "passport-twitter": "^1.0.4",
     "sqlite3": "^5.0.2",
+    "twict": "^0.0.7",
     "twitter-api-v2": "^1.7.1",
     "typeorm": "^0.2.41"
   },
@@ -31,6 +32,8 @@
     "@types/passport": "^1.0.7",
     "@types/passport-instagram": "^1.0.2",
     "@types/passport-twitter": "^1.0.37",
+    "@types/prettier": "^2.4.2",
+    "@types/request-promise": "^4.1.48",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
     "eslint": "^8.4.0",

@@ -1,8 +1,11 @@
 import { createHmac } from 'crypto';
 import { Router } from 'express';
+import { ActivityEmitter, ActivityEvent } from 'twict';
 import { config } from './config';
 
 export const webhookRouter = Router();
+
+const event = new ActivityEmitter();
 
 webhookRouter.get('/webhook', (req, res) => {
   if (typeof req.query?.crc_token === 'string') {
@@ -17,6 +20,8 @@ webhookRouter.get('/webhook', (req, res) => {
 
 webhookRouter.post('/webhook', (req, res) => {
   console.log(req.body);
+
+  event.emitEvent(req.body as ActivityEvent);
 
   res.status(200).end();
 });
