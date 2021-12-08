@@ -8,7 +8,7 @@ import {
 
 @Entity()
 export class TweetMonitorModel extends BaseEntity {
-  @PrimaryColumn('bigint')
+  @PrimaryColumn('varchar', { length: 32 })
   tweetId = '0';
 
   @Column('int')
@@ -38,13 +38,13 @@ export class HashtagMonitorModel extends BaseEntity {
 
 @Entity()
 export class HashtagTweet extends BaseEntity {
-  @PrimaryColumn('bigint')
+  @PrimaryColumn('varchar', { length: 32 })
   tweetId = '0';
 
   @Column('varchar', { length: 512 })
   text = '';
 
-  @Column('bigint')
+  @Column('varchar', { length: 32 })
   userId = '0';
 
   @Column('varchar', { length: 64 })
@@ -59,13 +59,13 @@ export class HashtagTweet extends BaseEntity {
 
 @Entity()
 export class ReplyTweet extends BaseEntity {
-  @PrimaryColumn('bigint')
+  @PrimaryColumn('varchar', { length: 32 })
   tweetId = '0';
 
   @Column('varchar', { length: 512 })
   text = '';
 
-  @Column('bigint')
+  @Column('varchar', { length: 32 })
   userId = '0';
 
   @Column('varchar', { length: 64 })
@@ -74,6 +74,6 @@ export class ReplyTweet extends BaseEntity {
   @Column('date')
   tweetAt?: Date;
 
-  @Column('bigint')
+  @Column('varchar', { length: 32 })
   replyToId = '0';
 }

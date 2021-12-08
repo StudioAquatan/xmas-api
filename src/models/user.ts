@@ -4,7 +4,7 @@ import { config } from '../config';
 
 @Entity()
 export class UserModel extends BaseEntity {
-  @PrimaryColumn('bigint')
+  @PrimaryColumn('varchar', { length: 32 })
   userId = '0';
 
   @Column('varchar', { length: 64 })
