@@ -12,7 +12,12 @@ restAPIRouter.get('/', async (req, res, next) => {
       return res.status(401).end();
     }
 
-    res.json(req.user);
+    res.json({
+      userId: req.user.userId,
+      screenName: req.user.screenName,
+      webhookActivated: req.user.webhookActivated,
+      useStream: req.user.useStream,
+    });
   } catch (e) {
     next(e);
   }
