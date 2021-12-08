@@ -10,16 +10,22 @@ interface WebhookResponse {
 
 type WebhookListResponse = Array<WebhookResponse>;
 
+export const getWebhookList = async (envName: string) => {
+  const bearerClient = new TwitterApi(config.twitter.bearerToken);
+  const list = await bearerClient.v1.get<WebhookListResponse>(
+    `account_activity/all/${envName}/webhooks.json`,
+  );
+
+  return list;
+};
+
 export const registerWebhook = async (
   user: UserModel,
   envName: string,
   url: string,
 ) => {
   const client = user.getClient();
-  const bearerClient = new TwitterApi(config.twitter.bearerToken);
-  const list = await bearerClient.v1.get<WebhookListResponse>(
-    `account_activity/all/${envName}/webhooks.json`,
-  );
+  const list = await getWebhookList(envName);
 
   const hook = list.find((item) => item.url === url);
   if (hook) return hook.id;

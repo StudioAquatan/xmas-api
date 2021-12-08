@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { config } from './config';
 import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
 import { twitterStream } from './twitter-stream';
-import { registerWebhook, subscribeWebhook } from './twitter-webhook-api';
+import {
+  getWebhookList,
+  registerWebhook,
+  subscribeWebhook,
+} from './twitter-webhook-api';
 
 export const restAPIRouter = Router();
 
@@ -56,6 +60,20 @@ restAPIRouter.post('/useStream', async (req, res, next) => {
     await req.user.save();
 
     res.status(200).end();
+  } catch (e) {
+    next(e);
+  }
+});
+
+restAPIRouter.get('/webhookStatus', async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).end();
+    }
+
+    const list = await getWebhookList(config.twitter.webhookEnv);
+
+    res.json(list);
   } catch (e) {
     next(e);
   }
