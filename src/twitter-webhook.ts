@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { ActivityEmitter, ActivityEvent } from 'twict';
 import { TweetV1 } from 'twitter-api-v2';
 import { config } from './config';
-import { TweetMonitorModel } from './models/monitor';
+import { ReplyTweet, TweetMonitorModel } from './models/monitor';
 import { UserModel } from './models/user';
 
 export const webhookRouter = Router();
@@ -47,6 +47,15 @@ event.onTweetCreate(async (response) => {
           })
           .set({ replyCount: () => 'replyCount + 1' })
           .execute();
+
+        await ReplyTweet.create({
+          tweetId: tweet.id_str,
+          text: tweet.text,
+          userId: tweet.user.id_str,
+          screenName: tweet.user.screen_name,
+          tweetAt: tweet.created_at,
+          replyToId: tweet.in_reply_to_status_id_str,
+        }).save();
       } else if (
         tweet.retweeted_status?.id_str &&
         user.userId !== tweet.user.id_str

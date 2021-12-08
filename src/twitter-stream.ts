@@ -1,5 +1,5 @@
 import { ETwitterStreamEvent, TweetStream, TweetV1 } from 'twitter-api-v2';
-import { HashtagMonitorModel } from './models/monitor';
+import { HashtagMonitorModel, HashtagTweet } from './models/monitor';
 import { UserModel } from './models/user';
 import { sleep } from './utils';
 
@@ -29,7 +29,7 @@ class TwitterStream {
       );
       if (!matchedTag) return;
 
-      console.log('increase', matchedTag.hashtag);
+      console.log('hashtag increase', matchedTag.hashtag);
 
       await HashtagMonitorModel.createQueryBuilder()
         .update()
@@ -38,6 +38,15 @@ class TwitterStream {
         })
         .set({ count: () => 'count + 1' })
         .execute();
+
+      await HashtagTweet.create({
+        tweetId: data.id_str,
+        text: data.text,
+        userId: data.user.id_str,
+        screenName: data.user.screen_name,
+        tweetAt: data.created_at,
+        ruleId: matchedTag.id,
+      }).save();
     });
 
     await this.stream.connect();

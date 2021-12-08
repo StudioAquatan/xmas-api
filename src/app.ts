@@ -11,6 +11,7 @@ import { config } from './config';
 import {
   HashtagMonitorModel,
   HashtagTweet,
+  ReplyTweet,
   TweetMonitorModel,
 } from './models/monitor';
 import { SessionModel } from './models/session';
@@ -77,6 +78,7 @@ passport.deserializeUser(async (id, done) => {
       HashtagMonitorModel,
       HashtagTweet,
       SessionModel,
+      ReplyTweet,
     ],
     type: 'sqlite',
     database: './data.db',
