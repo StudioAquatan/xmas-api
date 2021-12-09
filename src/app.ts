@@ -8,12 +8,14 @@ import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { createConnection } from 'typeorm';
 import { config } from './config';
+import { DeviceModel } from './models/device';
 import {
   HashtagMonitorModel,
   HashtagTweet,
   ReplyTweet,
   TweetMonitorModel,
 } from './models/monitor';
+import { RuleModel } from './models/rule';
 import { SessionModel } from './models/session';
 import { UserModel } from './models/user';
 import { restAPIRouter } from './twitter-rest';
@@ -79,6 +81,8 @@ passport.deserializeUser(async (id, done) => {
       HashtagTweet,
       SessionModel,
       ReplyTweet,
+      DeviceModel,
+      RuleModel,
     ],
     type: 'sqlite',
     database: './data.db',
