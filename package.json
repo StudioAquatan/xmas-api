@@ -8,6 +8,7 @@
   "license": "MIT",
   "main": "dist/app.js",
   "dependencies": {
+    "@google-cloud/iot": "^2.5.1",
     "body-parser": "^1.19.0",
     "connect-typeorm": "^1.1.4",
     "cookie-parser": "^1.4.6",

@@ -14,4 +14,9 @@ export const config = {
       'http://localhost:3000/api/twitter/webhook',
     webhookEnv: process.env.TWITTER_WEBHOOK_ENV ?? 'development',
   },
+  iot: {
+    projectId: process.env.GOOGLE_PROJECT_ID ?? '',
+    region: process.env.GOOGLE_PROJECT_REGION ?? '',
+    registry: process.env.GOOGLE_IOT_REGISTRY ?? '',
+  },
 };
