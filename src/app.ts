@@ -8,6 +8,7 @@ import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { createConnection } from 'typeorm';
 import { config } from './config';
+import { lightController } from './light-controller';
 import { DeviceModel } from './models/device';
 import {
   HashtagMonitorModel,
@@ -137,4 +138,6 @@ passport.deserializeUser(async (id, done) => {
     twitterStream.setRunnerUser(user);
     twitterStream.start();
   }
+
+  lightController.start();
 })();
