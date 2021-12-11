@@ -46,6 +46,15 @@ export class RuleModel extends BaseEntity {
   @Column('int', { nullable: true })
   maxHashtag: number | null = null;
 
+  @Column('simple-array')
+  sumTarget: Array<'fav' | 'retweet' | 'reply' | 'hashtag'> = [];
+
+  @Column('int', { nullable: true })
+  minSum: number | null = null;
+
+  @Column('int', { nullable: true })
+  maxSum: number | null = null;
+
   @Column('int', { nullable: true })
   timeout: number | null = null;
 
@@ -89,6 +98,17 @@ export class RuleModel extends BaseEntity {
 
     if (this.minReply !== null && replySum < this.minReply) return false;
     if (this.maxReply !== null && replySum > this.maxReply) return false;
+
+    if (this.sumTarget.length > 0) {
+      let sum = 0;
+      if (this.sumTarget.includes('fav')) sum += favSum;
+      if (this.sumTarget.includes('hashtag')) sum += filteredHashtags.length;
+      if (this.sumTarget.includes('reply')) sum += replySum;
+      if (this.sumTarget.includes('retweet')) sum += retweetSum;
+
+      if (this.minSum !== null && sum < this.minSum) return false;
+      if (this.maxSum !== null && sum > this.maxSum) return false;
+    }
 
     return true;
   }
