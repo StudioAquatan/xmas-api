@@ -17,6 +17,11 @@ const ruleValidator = Joi.object<Rule>({
   maxReply: Joi.number(),
   minHashtag: Joi.number(),
   maxHashtag: Joi.number(),
+  minSum: Joi.number(),
+  maxSum: Joi.number(),
+  sumTarget: Joi.array().items(
+    Joi.string().valid('none', 'fav', 'retweet', 'reply', 'hashtag'),
+  ),
   timeout: Joi.number(),
   targetPattern: Joi.number().required(),
 });
@@ -34,6 +39,9 @@ interface Rule {
   maxReply?: number;
   minHashtag?: number;
   maxHashtag?: number;
+  sumTarget?: Array<'fav' | 'retweet' | 'reply' | 'hashtag'>;
+  minSum?: number;
+  maxSum?: number;
   timeout?: number;
   targetPattern: number;
 }
