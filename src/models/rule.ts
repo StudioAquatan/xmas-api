@@ -66,11 +66,6 @@ export class RuleModel extends BaseEntity {
       this.hashtagMonitor.includes(id.toString()),
     );
 
-    if (this.minHashtag !== null && filteredHashtags.length < this.minHashtag)
-      return false;
-    if (this.maxHashtag !== null && filteredHashtags.length > this.maxHashtag)
-      return false;
-
     const filteredTweets = tweets.filter(({ tweetId }) =>
       this.tweetMonitor.includes(tweetId),
     );
@@ -80,31 +75,41 @@ export class RuleModel extends BaseEntity {
       0,
     );
 
-    if (this.minFav !== null && favSum < this.minFav) return false;
-    if (this.maxFav !== null && favSum > this.maxFav) return false;
-
     const retweetSum = filteredTweets.reduce(
       (count, { retweetCount }) => count + retweetCount,
       0,
     );
-
-    if (this.minRetweet !== null && retweetSum < this.minRetweet) return false;
-    if (this.maxRetweet !== null && retweetSum > this.maxRetweet) return false;
 
     const replySum = filteredTweets.reduce(
       (count, { replyCount }) => count + replyCount,
       0,
     );
 
+    console.log(this.id, 'stats', [
+      favSum,
+      retweetSum,
+      replySum,
+      filteredHashtags.length,
+    ]);
+
+    if (this.minHashtag !== null && filteredHashtags.length < this.minHashtag)
+      return false;
+    if (this.maxHashtag !== null && filteredHashtags.length > this.maxHashtag)
+      return false;
     if (this.minReply !== null && replySum < this.minReply) return false;
     if (this.maxReply !== null && replySum > this.maxReply) return false;
-
+    if (this.minRetweet !== null && retweetSum < this.minRetweet) return false;
+    if (this.maxRetweet !== null && retweetSum > this.maxRetweet) return false;
+    if (this.minFav !== null && favSum < this.minFav) return false;
+    if (this.maxFav !== null && favSum > this.maxFav) return false;
     if (this.sumTarget.length > 0) {
       let sum = 0;
       if (this.sumTarget.includes('fav')) sum += favSum;
       if (this.sumTarget.includes('hashtag')) sum += filteredHashtags.length;
       if (this.sumTarget.includes('reply')) sum += replySum;
       if (this.sumTarget.includes('retweet')) sum += retweetSum;
+
+      console.log(this.id, 'sum', sum);
 
       if (this.minSum !== null && sum < this.minSum) return false;
       if (this.maxSum !== null && sum > this.maxSum) return false;
