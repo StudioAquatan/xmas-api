@@ -133,6 +133,8 @@ passport.deserializeUser(async (id, done) => {
   app.use('/api/twitter', restAPIRouter);
   app.use('/api', ruleAPIRouter);
 
+  app.use('/', express.static('./public'));
+
   app.listen(3000, () => console.log('Http server started'));
 
   const user = await UserModel.findOne({ useStream: true });
