@@ -1,9 +1,10 @@
-import { BaseEntity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { HashtagMonitorModel, TweetMonitorModel } from './monitor';
 
+@Entity()
 export class RuleModel extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id = '';
+  id?: string;
 
   @Column('int')
   ruleId = 0;
@@ -11,7 +12,8 @@ export class RuleModel extends BaseEntity {
   @Column('int')
   priority = 0;
 
-  @Column('enum', { enum: ['none', 'fav', 'retweet', 'reply', 'hashtag'] })
+  // @Column('enum', { enum: ['none', 'fav', 'retweet', 'reply', 'hashtag'] })
+  @Column('text')
   event: 'none' | 'fav' | 'retweet' | 'reply' | 'hashtag' = 'none';
 
   @Column('simple-array')

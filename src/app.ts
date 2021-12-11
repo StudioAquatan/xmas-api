@@ -19,6 +19,7 @@ import {
 import { RuleModel } from './models/rule';
 import { SessionModel } from './models/session';
 import { UserModel } from './models/user';
+import { ruleAPIRouter } from './rule-rest';
 import { restAPIRouter } from './twitter-rest';
 import { twitterStream } from './twitter-stream';
 import { webhookRouter } from './twitter-webhook';
@@ -130,6 +131,7 @@ passport.deserializeUser(async (id, done) => {
   );
   app.use('/api/twitter', webhookRouter);
   app.use('/api/twitter', restAPIRouter);
+  app.use('/api', ruleAPIRouter);
 
   app.listen(3000, () => console.log('Http server started'));
 
