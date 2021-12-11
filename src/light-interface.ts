@@ -25,6 +25,7 @@ class LightInterface {
     const [devices] = await this.client.listDevices({
       pageSize: 50,
       parent: registryPath,
+      fieldMask: { paths: ['metadata', 'config'] },
     });
 
     this.deviceCache = devices.map((device) => ({
