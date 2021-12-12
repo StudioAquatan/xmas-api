@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { ActivityEmitter, ActivityEvent } from 'twict';
 import { TweetV1 } from 'twitter-api-v2';
 import { config } from './config';
+import { lightController } from './light-controller';
 import { ReplyTweet, TweetMonitorModel } from './models/monitor';
 import { UserModel } from './models/user';
 
@@ -56,6 +57,8 @@ event.onTweetCreate(async (response) => {
           tweetAt: tweet.created_at,
           replyToId: tweet.in_reply_to_status_id_str,
         }).save();
+
+        lightController.update('reply');
       } else if (
         tweet.retweeted_status?.id_str &&
         user.userId !== tweet.user.id_str
@@ -84,6 +87,8 @@ event.onTweetCreate(async (response) => {
             replyCount: tweet.retweeted_status?.reply_count,
           })
           .execute();
+
+        lightController.update('retweet');
       }
     }
   } catch (e) {
@@ -121,6 +126,8 @@ event.onFavorite(async (response) => {
         })
         .execute();
     }
+
+    lightController.update('fav');
   } catch (e) {
     console.error(e);
   }

@@ -1,4 +1,5 @@
 import { ETwitterStreamEvent, TweetStream, TweetV1 } from 'twitter-api-v2';
+import { lightController } from './light-controller';
 import { HashtagMonitorModel, HashtagTweet } from './models/monitor';
 import { UserModel } from './models/user';
 import { sleep } from './utils';
@@ -47,6 +48,8 @@ class TwitterStream {
         tweetAt: data.created_at,
         ruleId: matchedTag.id,
       }).save();
+
+      lightController.update('hashtag');
     });
 
     await this.stream.connect();
