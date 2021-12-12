@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Joi from 'joi';
+import { lightController } from './light-controller';
 import { RuleModel } from './models/rule';
 
 const ruleValidator = Joi.object<Rule>({
@@ -87,6 +88,16 @@ ruleAPIRouter.get('/rules', async (req, res) => {
   }
 
   res.json(rules);
+});
+
+ruleAPIRouter.post('/rules/evaluate', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).end();
+  }
+
+  lightController.start();
+
+  res.status(200).end();
 });
 
 ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
