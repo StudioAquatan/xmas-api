@@ -53,11 +53,9 @@ class LightInterface {
       deviceId,
     );
 
-    const configData = Buffer.alloc(1);
-    configData.writeUInt8(pattern, 0);
     await this.client.modifyCloudToDeviceConfig({
       name: devicePath,
-      binaryData: configData.toString('base64'),
+      binaryData: Buffer.from(pattern.toString(), 'utf8').toString('base64'),
       versionToUpdate: 0,
     });
   }
