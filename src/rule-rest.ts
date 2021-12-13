@@ -8,23 +8,23 @@ const ruleValidator = Joi.object<Rule>({
   event: Joi.string()
     .valid('none', 'fav', 'retweet', 'reply', 'hashtag')
     .required(),
-  tweetMonitor: Joi.array().items(Joi.number()),
-  hashtagMonitor: Joi.array().items(Joi.number()),
-  minFav: Joi.number(),
-  maxFav: Joi.number(),
-  minRetweet: Joi.number(),
-  maxRetweet: Joi.number(),
-  minReply: Joi.number(),
-  maxReply: Joi.number(),
-  minHashtag: Joi.number(),
-  maxHashtag: Joi.number(),
-  minSum: Joi.number(),
-  maxSum: Joi.number(),
+  tweetMonitor: Joi.array().items(Joi.string().regex(/^\d+$/)),
+  hashtagMonitor: Joi.array().items(Joi.number().positive().allow(0)),
+  minFav: Joi.number().positive().allow(null),
+  maxFav: Joi.number().positive().allow(null),
+  minRetweet: Joi.number().positive().allow(null),
+  maxRetweet: Joi.number().positive().allow(null),
+  minReply: Joi.number().positive().allow(null),
+  maxReply: Joi.number().positive().allow(null),
+  minHashtag: Joi.number().positive().allow(null),
+  maxHashtag: Joi.number().positive().allow(null),
+  minSum: Joi.number().positive().allow(null),
+  maxSum: Joi.number().positive().allow(null),
   sumTarget: Joi.array().items(
     Joi.string().valid('none', 'fav', 'retweet', 'reply', 'hashtag'),
   ),
-  timeout: Joi.number(),
-  targetPattern: Joi.number().required(),
+  timeout: Joi.number().positive().allow(null),
+  targetPattern: Joi.number().positive().required(),
 });
 
 interface Rule {
@@ -55,8 +55,8 @@ ruleAPIRouter.put('/rules/:ruleId', async (req, res) => {
   }
 
   const ruleId = Number(req.params.ruleId);
-  const rule = ruleValidator.validate(req.body);
-  if (!rule.value || isNaN(ruleId)) {
+  const rule = ruleValidator.validate(req.body, { stripUnknown: true });
+  if (rule.error || isNaN(ruleId)) {
     return res.status(400).json(rule.error).end();
   }
 
@@ -105,8 +105,8 @@ ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
     return res.status(401).end();
   }
 
-  const newRule = ruleValidator.validate(req.body);
-  if (!newRule.value) {
+  const newRule = ruleValidator.validate(req.body, { stripUnknown: true });
+  if (newRule.error) {
     return res.status(400).json(newRule.error).end();
   }
 
