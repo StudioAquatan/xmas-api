@@ -9,7 +9,6 @@ import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { createConnection } from 'typeorm';
 import { config } from './config';
 import { lightController } from './light-controller';
-import { DeviceModel } from './models/device';
 import {
   HashtagMonitorModel,
   HashtagTweet,
@@ -87,7 +86,6 @@ passport.deserializeUser(async (id, done) => {
       HashtagTweet,
       SessionModel,
       ReplyTweet,
-      DeviceModel,
       RuleModel,
     ],
     type: 'sqlite',
