@@ -123,7 +123,7 @@ restAPIRouter.get('/monitor/hashtag', async (req, res, next) => {
       return res.status(401).end();
     }
 
-    const rules = await HashtagMonitorModel.find();
+    const rules = await HashtagMonitorModel.find({ active: true });
     res.json(rules.map((rule) => rule));
   } catch (e) {
     next(e);
