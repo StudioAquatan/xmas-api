@@ -62,8 +62,8 @@ export class RuleModel extends BaseEntity {
   targetPattern = 0;
 
   evaluateRange(tweets: TweetMonitorModel[], hashtag: HashtagMonitorModel[]) {
-    const filteredHashtags = hashtag.filter(({ id }) =>
-      this.hashtagMonitor.includes(id.toString()),
+    const filteredHashtags = hashtag.filter(
+      ({ id }) => id && this.hashtagMonitor.includes(id.toString()),
     );
 
     const filteredTweets = tweets.filter(({ tweetId }) =>

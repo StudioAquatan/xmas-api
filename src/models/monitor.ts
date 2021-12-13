@@ -24,7 +24,7 @@ export class TweetMonitorModel extends BaseEntity {
 @Entity()
 export class HashtagMonitorModel extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
-  id = 0;
+  id?: number;
 
   @Column('varchar', { length: 256, unique: true })
   hashtag = '';
