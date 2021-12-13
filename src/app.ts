@@ -57,7 +57,11 @@ passport.use(
 
         await user.save();
 
-        done(null, profile.id);
+        if (!config.twitter.allowedId.includes(profile.id)) {
+          done('Not allowed');
+        } else {
+          done(null, profile.id);
+        }
       } catch (e) {
         done(e);
       }
