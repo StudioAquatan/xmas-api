@@ -107,7 +107,7 @@ passport.deserializeUser(async (id, done) => {
   app.use(
     '/api',
     session({
-      secret: 'keyboard cat',
+      secret: config.sessionSecret,
       store: new TypeormStore({
         cleanupLimit: 2,
         limitSubquery: false, // If using MariaDB.

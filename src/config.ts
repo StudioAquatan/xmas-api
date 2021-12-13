@@ -20,4 +20,5 @@ export const config = {
     region: process.env.GOOGLE_PROJECT_REGION ?? '',
     registry: process.env.GOOGLE_IOT_REGISTRY ?? '',
   },
+  sessionSecret: process.env.SESSION_SECRET ?? 'nyancat',
 };
