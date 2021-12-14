@@ -8,6 +8,7 @@ import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { createConnection } from 'typeorm';
 import { config } from './config';
+import { deviceAPIRouter } from './device-rest';
 import { lightController } from './light-controller';
 import {
   HashtagMonitorModel,
@@ -134,6 +135,7 @@ passport.deserializeUser(async (id, done) => {
   app.use('/api/twitter', webhookRouter);
   app.use('/api/twitter', restAPIRouter);
   app.use('/api', ruleAPIRouter);
+  app.use('/api/devices', deviceAPIRouter);
 
   app.use('/', express.static('./public'));
 
