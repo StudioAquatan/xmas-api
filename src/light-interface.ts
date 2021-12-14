@@ -4,6 +4,9 @@ import { config } from './config';
 interface DeviceInfo {
   ruleId?: number;
   deviceId: string;
+  patternId: number;
+  lastConfigAck?: Date | null;
+  lastHeartbeat?: Date | null;
 }
 class LightInterface {
   private client: iot.DeviceManagerClient;
@@ -25,12 +28,28 @@ class LightInterface {
     const [devices] = await this.client.listDevices({
       pageSize: 50,
       parent: registryPath,
-      fieldMask: { paths: ['metadata', 'config'] },
+      fieldMask: {
+        paths: [
+          'metadata',
+          'config',
+          'last_config_ack_time',
+          'last_heartbeat_time',
+        ],
+      },
     });
 
     this.deviceCache = devices.map((device) => ({
       deviceId: device.id!,
       ruleId: Number(device.metadata?.ruleId ?? -1),
+      patternId: device.config?.binaryData
+        ? Number(Buffer.from(device.config?.binaryData).toString('utf-8'))
+        : -1,
+      lastConfigAck: device.lastConfigAckTime?.seconds
+        ? new Date(Number(device.lastConfigAckTime?.seconds) * 1000)
+        : null,
+      lastHeartbeat: device.lastHeartbeatTime?.seconds
+        ? new Date(Number(device.lastHeartbeatTime?.seconds) * 1000)
+        : null,
     }));
     this.deviceCacheLastModified = Date.now();
 
