@@ -22,6 +22,7 @@ class TwitterStream {
     this.stream.autoReconnect = true;
 
     this.stream.on(ETwitterStreamEvent.Data, async (data) => {
+      if (data.retweeted_status) return;
       const hashtags = await HashtagMonitorModel.find({ active: true });
       const matchedTag = hashtags.find(({ hashtag }) =>
         data.entities.hashtags?.find(
