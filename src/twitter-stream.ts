@@ -15,7 +15,7 @@ class TwitterStream {
     this.stream = await client.readOnly.v1.filterStream({
       track: hashtag
         .map((ht) => (ht.startsWith('#') ? ht : `#${ht}`))
-        .join(' '),
+        .join(','),
       autoConnect: true,
     });
 
