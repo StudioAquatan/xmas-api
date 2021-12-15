@@ -24,7 +24,7 @@ const ruleValidator = Joi.object<Rule>({
     Joi.string().valid('none', 'fav', 'retweet', 'reply', 'hashtag'),
   ),
   timeout: Joi.number().positive().allow(null, 0),
-  targetPattern: Joi.number().positive().required(),
+  targetPattern: Joi.number().positive().allow(0).required(),
 });
 
 interface Rule {
