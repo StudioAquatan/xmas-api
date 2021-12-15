@@ -53,7 +53,9 @@ restAPIRouter.post('/useStream', async (req, res, next) => {
       return res.status(401).end();
     }
 
-    twitterStream.setRunnerUser(req.user);
+    if (!twitterStream.hasRunnerUser()) {
+      twitterStream.setRunnerUser(req.user);
+    }
     twitterStream.start();
 
     req.user.useStream = true;
