@@ -21,12 +21,6 @@ export class RuleModel extends BaseEntity {
   @Column('simple-array')
   triggerHashtags: string[] = [];
 
-  @Column('simple-array')
-  collectTweets: string[] = [];
-
-  @Column('simple-array')
-  collectHashtags: string[] = [];
-
   @Column('varchar', { length: 1024 * 32 })
   conditionJson = '[]';
 
