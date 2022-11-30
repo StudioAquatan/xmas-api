@@ -17,10 +17,16 @@ export class RuleModel extends BaseEntity {
   event: 'none' | 'fav' | 'retweet' | 'reply' | 'hashtag' = 'none';
 
   @Column('simple-array')
-  tweetMonitor: string[] = [];
+  eventTweets: string[] = [];
 
   @Column('simple-array')
-  hashtagMonitor: string[] = [];
+  eventHashtags: string[] = [];
+
+  @Column('simple-array')
+  collectTweets: string[] = [];
+
+  @Column('simple-array')
+  collectHashtags: string[] = [];
 
   @Column('int', { nullable: true })
   minFav: number | null = null;
@@ -63,11 +69,11 @@ export class RuleModel extends BaseEntity {
 
   evaluateRange(tweets: TweetMonitorModel[], hashtag: HashtagMonitorModel[]) {
     const filteredHashtags = hashtag.filter(
-      ({ id }) => id && this.hashtagMonitor.includes(id.toString()),
+      ({ id }) => id && this.collectHashtags.includes(id.toString()),
     );
 
     const filteredTweets = tweets.filter(({ tweetId }) =>
-      this.tweetMonitor.includes(tweetId),
+      this.collectTweets.includes(tweetId),
     );
 
     const favSum = filteredTweets.reduce(
