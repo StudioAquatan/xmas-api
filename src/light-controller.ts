@@ -49,7 +49,7 @@ class LightController {
 
   private async evaluateRule(id: number, event?: LightEvent) {
     const rules = await RuleModel.find({
-      where: { ruleId: id },
+      where: { ruleSetId: id },
       order: {
         priority: 'DESC',
       },
@@ -59,7 +59,10 @@ class LightController {
       tweetIds: string[];
       hashtagIds: string[];
     }>(
-      ({ tweetIds, hashtagIds }, { tweetMonitor, hashtagMonitor }) => ({
+      (
+        { tweetIds, hashtagIds },
+        { triggerTweets: tweetMonitor, triggerHashtags: hashtagMonitor },
+      ) => ({
         tweetIds: [...tweetIds, ...tweetMonitor],
         hashtagIds: [...hashtagIds, ...hashtagMonitor],
       }),
@@ -74,7 +77,7 @@ class LightController {
     const matchedRule = rules.find(
       (rule) =>
         rule.evaluateRange(tweets, hashtags) &&
-        (rule.event == 'none' || rule.event === event),
+        (rule.trigger == 'none' || rule.trigger === event),
     );
 
     return matchedRule;

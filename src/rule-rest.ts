@@ -1,48 +1,32 @@
 import { Router } from 'express';
 import Joi from 'joi';
 import { lightController } from './light-controller';
+import { RuleSet } from './models/condition';
 import { RuleModel } from './models/rule';
 
 const ruleValidator = Joi.object<Rule>({
   priority: Joi.number().required(),
-  event: Joi.string()
-    .valid('none', 'fav', 'retweet', 'reply', 'hashtag')
+  trigger: Joi.string()
+    .valid('always', 'fav', 'retweet', 'reply', 'hashtag')
     .required(),
-  tweetMonitor: Joi.array().items(Joi.string().regex(/^\d+$/)),
-  hashtagMonitor: Joi.array().items(Joi.number().positive().allow(0)),
-  minFav: Joi.number().positive().allow(null, 0),
-  maxFav: Joi.number().positive().allow(null, 0),
-  minRetweet: Joi.number().positive().allow(null, 0),
-  maxRetweet: Joi.number().positive().allow(null, 0),
-  minReply: Joi.number().positive().allow(null, 0),
-  maxReply: Joi.number().positive().allow(null, 0),
-  minHashtag: Joi.number().positive().allow(null, 0),
-  maxHashtag: Joi.number().positive().allow(null, 0),
-  minSum: Joi.number().positive().allow(null, 0),
-  maxSum: Joi.number().positive().allow(null, 0),
-  sumTarget: Joi.array().items(
-    Joi.string().valid('none', 'fav', 'retweet', 'reply', 'hashtag'),
-  ),
+  triggerTweets: Joi.array().items(Joi.string().regex(/^\d+$/)),
+  triggerHashtags: Joi.array().items(Joi.number().positive().allow(0)),
+  condition: Joi.object<RuleSet>({
+    type: Joi.string().valid('or', 'and', 'single', 'inv').required(),
+    lhs: Joi.ref('ruleSet'),
+    rhs: Joi.ref('ruleSet'),
+    expr: Joi.ref('ruleSet'),
+  }).id('ruleSet'),
   timeout: Joi.number().positive().allow(null, 0),
   targetPattern: Joi.number().positive().allow(0).required(),
 });
 
 interface Rule {
   priority: number;
-  event: 'none' | 'fav' | 'retweet' | 'reply' | 'hashtag';
-  tweetMonitor?: string[];
-  hashtagMonitor?: number[];
-  minFav?: number;
-  maxFav?: number;
-  minRetweet?: number;
-  maxRetweet?: number;
-  minReply?: number;
-  maxReply?: number;
-  minHashtag?: number;
-  maxHashtag?: number;
-  sumTarget?: Array<'fav' | 'retweet' | 'reply' | 'hashtag'>;
-  minSum?: number;
-  maxSum?: number;
+  trigger: 'always' | 'fav' | 'retweet' | 'reply' | 'hashtag';
+  triggerTweets?: string[];
+  triggerHashtags?: number[];
+  condition: RuleSet;
   timeout?: number;
   targetPattern: number;
 }
@@ -62,8 +46,8 @@ ruleAPIRouter.put('/rules/:ruleId', async (req, res) => {
 
   const dbRule = RuleModel.create({
     ...rule.value,
-    ruleId,
-    hashtagMonitor: rule.value.hashtagMonitor?.map((t) => t.toString()),
+    ruleSetId: ruleId,
+    triggerHashtags: rule.value.hashtagMonitor?.map((t) => t.toString()),
   });
   await dbRule.save();
 
@@ -83,8 +67,8 @@ ruleAPIRouter.get('/rules', async (req, res) => {
   });
 
   for (const rule of ruleArray) {
-    rules[rule.ruleId] = rules[rule.ruleId] ?? [];
-    rules[rule.ruleId].push(rule);
+    rules[rule.ruleSetId] = rules[rule.ruleSetId] ?? [];
+    rules[rule.ruleSetId].push(rule);
   }
 
   res.json(rules);
@@ -113,7 +97,7 @@ ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
   const rule = await RuleModel.findOne({
     where: {
       id: req.params.uuid,
-      ruleId: Number(req.params.ruleId),
+      ruleSetId: Number(req.params.ruleId),
     },
   });
 
@@ -141,7 +125,7 @@ ruleAPIRouter.delete('/rules/:ruleId/:uuid', async (req, res) => {
   const rule = await RuleModel.findOne({
     where: {
       id: req.params.uuid,
-      ruleId: Number(req.params.ruleId),
+      ruleSetId: Number(req.params.ruleId),
     },
   });
 
