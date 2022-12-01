@@ -96,25 +96,17 @@ restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
       hashtag = hashtag.replace(/^#/, '');
     }
 
-    const rule = await HashtagMonitorModel.findOne({ hashtag });
-    if (rule) {
-      rule.active = true;
-      await rule.save();
-    } else {
-      await HashtagMonitorModel.create({
-        hashtag,
-        count: 0,
-      }).save();
-    }
-
-    const newRule = await HashtagMonitorModel.findOne({ hashtag });
+    const monitor = await HashtagMonitorModel.create({
+      hashtag,
+      count: 0,
+    }).save();
 
     if (!twitterStream.hasRunnerUser()) {
       twitterStream.setRunnerUser(req.user);
     }
     twitterStream.start();
 
-    res.json(newRule);
+    res.json(monitor);
   } catch (e) {
     next(e);
   }
@@ -126,7 +118,7 @@ restAPIRouter.get('/monitor/hashtag', async (req, res, next) => {
       return res.status(401).end();
     }
 
-    const rules = await HashtagMonitorModel.find({ active: true });
+    const rules = await HashtagMonitorModel.find();
     res.json(rules.map((rule) => rule));
   } catch (e) {
     next(e);
@@ -144,12 +136,11 @@ restAPIRouter.delete('/monitor/hashtag/:id', async (req, res, next) => {
       return res.status(400).end();
     }
 
-    const rule = await HashtagMonitorModel.findOne({ id: ruleId });
+    const rule = await HashtagMonitorModel.findOne({ where: { id: ruleId } });
     if (!rule) {
       return res.status(404).end();
     }
 
-    rule.active = false;
     await rule.save();
 
     res.status(200).end();
@@ -179,7 +170,7 @@ restAPIRouter.put('/monitor/tweet/:id', async (req, res, next) => {
 
     const tweetId = req.params.id;
 
-    let rule = await TweetMonitorModel.findOne({ tweetId });
+    let rule = await TweetMonitorModel.findOne({ where: { tweetId } });
     if (!rule) {
       rule = TweetMonitorModel.create({
         tweetId,
@@ -201,7 +192,7 @@ restAPIRouter.delete('/monitor/tweet/:id', async (req, res, next) => {
 
     const tweetId = req.params.id;
 
-    const rule = await TweetMonitorModel.findOne({ tweetId });
+    const rule = await TweetMonitorModel.findOne({ where: { tweetId } });
     if (!rule) {
       return res.status(404).end();
     }
