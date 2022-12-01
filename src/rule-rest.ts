@@ -36,16 +36,19 @@ export const ruleAPIRouter = Router();
 
 ruleAPIRouter.put('/rules/:ruleId', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const ruleId = Number(req.params.ruleId);
   if (isNaN(ruleId)) {
-    return res.status(400).json({ error: 'Unknown rule id' }).end();
+    res.status(400).json({ error: 'Unknown rule id' }).end();
+    return;
   }
   const rule = ruleValidator.safeParse(req.body);
   if (!rule.success) {
-    return res.status(400).json(rule.error).end();
+    res.status(400).json(rule.error).end();
+    return;
   }
 
   const dbRule = RuleModel.create({
@@ -61,7 +64,8 @@ ruleAPIRouter.put('/rules/:ruleId', async (req, res) => {
 
 ruleAPIRouter.get('/rules', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const rules: Record<number, RuleModel[]> = {};
@@ -81,7 +85,8 @@ ruleAPIRouter.get('/rules', async (req, res) => {
 
 ruleAPIRouter.post('/rules/evaluate', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   lightController.start();
@@ -91,12 +96,14 @@ ruleAPIRouter.post('/rules/evaluate', async (req, res) => {
 
 ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const newRule = ruleValidator.safeParse(req.body);
   if (!newRule.success) {
-    return res.status(400).json(newRule.error).end();
+    res.status(400).json(newRule.error).end();
+    return;
   }
 
   const rule = await RuleModel.findOne({
@@ -107,7 +114,8 @@ ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
   });
 
   if (!rule) {
-    return res.status(404).end();
+    res.status(404).end();
+    return;
   }
 
   const dbRuleValues = {
@@ -125,7 +133,8 @@ ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
 
 ruleAPIRouter.delete('/rules/:ruleId/:uuid', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const rule = await RuleModel.findOne({
@@ -136,7 +145,8 @@ ruleAPIRouter.delete('/rules/:ruleId/:uuid', async (req, res) => {
   });
 
   if (!rule) {
-    return res.status(404).end();
+    res.status(404).end();
+    return;
   }
 
   await rule.remove();

@@ -15,7 +15,8 @@ export const restAPIRouter = Router();
 restAPIRouter.get('/', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     res.json({
@@ -32,7 +33,8 @@ restAPIRouter.get('/', async (req, res, next) => {
 restAPIRouter.put('/webhook', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const id = await registerWebhook(
@@ -52,7 +54,8 @@ restAPIRouter.put('/webhook', async (req, res, next) => {
 restAPIRouter.put('/stream', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     if (!twitterStream.hasRunnerUser()) {
@@ -72,7 +75,8 @@ restAPIRouter.put('/stream', async (req, res, next) => {
 restAPIRouter.get('/global/webhooks', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const list = await getWebhookList(config.twitter.webhookEnv);
@@ -86,7 +90,8 @@ restAPIRouter.get('/global/webhooks', async (req, res, next) => {
 restAPIRouter.get('/accounts', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const users = await UserModel.find();
@@ -118,12 +123,14 @@ restAPIRouter.get('/accounts', async (req, res, next) => {
 restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     let hashtag = req.body.hashtag;
     if (typeof hashtag !== 'string') {
-      return res.status(400).end();
+      res.status(400).end();
+      return;
     }
 
     if (hashtag.startsWith('#')) {
@@ -149,7 +156,8 @@ restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
 restAPIRouter.get('/monitor/hashtag', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const rules = await HashtagMonitorModel.find();
@@ -162,23 +170,27 @@ restAPIRouter.get('/monitor/hashtag', async (req, res, next) => {
 restAPIRouter.delete('/monitor/hashtag/:id', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const ruleId = Number(req.params.id);
     if (isNaN(ruleId)) {
-      return res.status(400).end();
+      res.status(400).end();
+      return;
     }
 
     for (const { collectHashtags, eventHashtags } of await RuleModel.find()) {
       if ([...collectHashtags, ...eventHashtags].includes(ruleId.toString())) {
-        return res.status(400).json({ error: 'Hashtag is used in rule' }).end();
+        res.status(400).json({ error: 'Hashtag is used in rule' }).end();
+        return;
       }
     }
 
     const rule = await HashtagMonitorModel.findOne({ where: { id: ruleId } });
     if (!rule) {
-      return res.status(404).end();
+      res.status(404).end();
+      return;
     }
 
     await rule.save();
@@ -192,7 +204,8 @@ restAPIRouter.delete('/monitor/hashtag/:id', async (req, res, next) => {
 restAPIRouter.get('/monitor/tweet', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const rules = await TweetMonitorModel.find();
@@ -205,7 +218,8 @@ restAPIRouter.get('/monitor/tweet', async (req, res, next) => {
 restAPIRouter.put('/monitor/tweet/:id', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const tweetId = req.params.id;
@@ -227,14 +241,16 @@ restAPIRouter.put('/monitor/tweet/:id', async (req, res, next) => {
 restAPIRouter.delete('/monitor/tweet/:id', async (req, res, next) => {
   try {
     if (!req.user) {
-      return res.status(401).end();
+      res.status(401).end();
+      return;
     }
 
     const tweetId = req.params.id;
 
     const rule = await TweetMonitorModel.findOne({ where: { tweetId } });
     if (!rule) {
-      return res.status(404).end();
+      res.status(404).end();
+      return;
     }
 
     await rule.remove();
