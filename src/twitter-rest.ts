@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { config } from './config';
 import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
+import { RuleModel } from './models/rule';
 import { twitterStream } from './twitter-stream';
 import {
   getWebhookList,
@@ -134,6 +135,12 @@ restAPIRouter.delete('/monitor/hashtag/:id', async (req, res, next) => {
     const ruleId = Number(req.params.id);
     if (isNaN(ruleId)) {
       return res.status(400).end();
+    }
+
+    for (const { collectHashtags, eventHashtags } of await RuleModel.find()) {
+      if ([...collectHashtags, ...eventHashtags].includes(ruleId.toString())) {
+        return res.status(400).json({ error: 'Hashtag is used in rule' }).end();
+      }
     }
 
     const rule = await HashtagMonitorModel.findOne({ where: { id: ruleId } });
