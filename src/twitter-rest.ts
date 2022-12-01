@@ -83,6 +83,38 @@ restAPIRouter.get('/global/webhooks', async (req, res, next) => {
   }
 });
 
+restAPIRouter.get('/accounts', async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).end();
+    }
+
+    const users = await UserModel.find();
+
+    res.json(
+      users.map(
+        ({
+          userId,
+          screenName,
+          displayName,
+          iconUrl,
+          webhookActivated,
+          useStream,
+        }) => ({
+          userId,
+          screenName,
+          displayName,
+          iconUrl,
+          webhookActivated,
+          useStream,
+        }),
+      ),
+    );
+  } catch (e) {
+    next(e);
+  }
+});
+
 restAPIRouter.put('/monitor/hashtag', async (req, res, next) => {
   try {
     if (!req.user) {
