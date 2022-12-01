@@ -1,6 +1,8 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { HashtagMonitorModel, TweetMonitorModel } from './monitor';
 
+export type RuleEventType = 'none' | 'fav' | 'retweet' | 'reply' | 'hashtag';
+
 @Entity()
 export class RuleModel extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -14,7 +16,7 @@ export class RuleModel extends BaseEntity {
 
   // @Column('enum', { enum: ['none', 'fav', 'retweet', 'reply', 'hashtag'] })
   @Column('text')
-  event: 'none' | 'fav' | 'retweet' | 'reply' | 'hashtag' = 'none';
+  event: RuleEventType = 'none';
 
   @Column('simple-array')
   eventTweets: string[] = [];
@@ -67,6 +69,26 @@ export class RuleModel extends BaseEntity {
   @Column('int')
   targetPattern = 0;
 
+  hasCollectTweet(id: string) {
+    return this.collectTweets.includes(id);
+  }
+
+  hasEventTweet(id: string) {
+    return this.eventTweets.includes(id);
+  }
+
+  hasCollectHashtag(id: number) {
+    return this.collectHashtags.find(
+      (hashtagStr) => hashtagStr === id.toString(),
+    );
+  }
+
+  hasEventHashtag(id: number) {
+    return this.eventHashtags.find(
+      (hashtagStr) => hashtagStr === id.toString(),
+    );
+  }
+
   evaluateRange(tweets: TweetMonitorModel[], hashtag: HashtagMonitorModel[]) {
     const filteredHashtags = hashtag.filter(
       ({ id }) => id && this.collectHashtags.includes(id.toString()),
@@ -91,13 +113,6 @@ export class RuleModel extends BaseEntity {
       0,
     );
 
-    console.log(this.id, 'stats', [
-      favSum,
-      retweetSum,
-      replySum,
-      filteredHashtags.length,
-    ]);
-
     if (this.minHashtag !== null && filteredHashtags.length < this.minHashtag)
       return false;
     if (this.maxHashtag !== null && filteredHashtags.length > this.maxHashtag)
@@ -109,14 +124,14 @@ export class RuleModel extends BaseEntity {
     if (this.minFav !== null && favSum < this.minFav) return false;
     if (this.maxFav !== null && favSum > this.maxFav) return false;
     if (this.sumTarget.length > 0) {
-      let sum = 0;
-      if (this.sumTarget.includes('fav')) sum += favSum;
-      if (this.sumTarget.includes('hashtag')) sum += filteredHashtags.length;
-      if (this.sumTarget.includes('reply')) sum += replySum;
-      if (this.sumTarget.includes('retweet')) sum += retweetSum;
+      const sumTarget: number[] = [];
+      if (this.sumTarget.includes('fav')) sumTarget.push(favSum);
+      if (this.sumTarget.includes('hashtag'))
+        sumTarget.push(filteredHashtags.length);
+      if (this.sumTarget.includes('reply')) sumTarget.push(replySum);
+      if (this.sumTarget.includes('retweet')) sumTarget.push(retweetSum);
 
-      console.log(this.id, 'sum', sum);
-
+      const sum = sumTarget.reduce((p, c) => p + c, 0);
       if (this.minSum !== null && sum < this.minSum) return false;
       if (this.maxSum !== null && sum > this.maxSum) return false;
     }
