@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { config } from './config';
 import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
 import { RuleModel } from './models/rule';
+import { UserModel } from './models/user';
 import { twitterStream } from './twitter-stream';
 import {
   getWebhookList,
@@ -28,7 +29,7 @@ restAPIRouter.get('/', async (req, res, next) => {
   }
 });
 
-restAPIRouter.post('/subscribeWebhook', async (req, res, next) => {
+restAPIRouter.put('/webhook', async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).end();
@@ -48,7 +49,7 @@ restAPIRouter.post('/subscribeWebhook', async (req, res, next) => {
   }
 });
 
-restAPIRouter.post('/useStream', async (req, res, next) => {
+restAPIRouter.put('/stream', async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).end();
@@ -68,7 +69,7 @@ restAPIRouter.post('/useStream', async (req, res, next) => {
   }
 });
 
-restAPIRouter.get('/webhookStatus', async (req, res, next) => {
+restAPIRouter.get('/global/webhooks', async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).end();
