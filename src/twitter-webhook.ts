@@ -30,13 +30,15 @@ webhookRouter.post('/webhook', (req, res) => {
 
 event.onTweetCreate(async (response) => {
   try {
-    const user = await UserModel.findOne({ userId: response.for_user_id });
+    const user = await UserModel.findOne({
+      where: { userId: response.for_user_id },
+    });
     if (!user) return;
 
     for (const tweet of response.tweet_create_events as unknown as TweetV1[]) {
       if (tweet.in_reply_to_status_id_str) {
         const monitor = await TweetMonitorModel.findOne({
-          tweetId: tweet.in_reply_to_status_id_str,
+          where: { tweetId: tweet.in_reply_to_status_id_str },
         });
         if (!monitor) continue;
 
@@ -58,13 +60,18 @@ event.onTweetCreate(async (response) => {
           replyToId: tweet.in_reply_to_status_id_str,
         }).save();
 
-        lightController.update('reply');
+        lightController.update({
+          type: 'reply',
+          sourceTweetId: monitor.tweetId,
+        });
       } else if (
         tweet.retweeted_status?.id_str &&
         user.userId !== tweet.user.id_str
       ) {
         const monitor = await TweetMonitorModel.findOne({
-          tweetId: tweet.retweeted_status?.id_str,
+          where: {
+            tweetId: tweet.retweeted_status?.id_str,
+          },
         });
         if (!monitor) continue;
         console.log(
@@ -88,7 +95,10 @@ event.onTweetCreate(async (response) => {
           })
           .execute();
 
-        lightController.update('retweet');
+        lightController.update({
+          type: 'retweet',
+          sourceTweetId: monitor.tweetId,
+        });
       }
     }
   } catch (e) {
@@ -98,12 +108,16 @@ event.onTweetCreate(async (response) => {
 
 event.onFavorite(async (response) => {
   try {
-    const user = await UserModel.findOne({ userId: response.for_user_id });
+    const user = await UserModel.findOne({
+      where: { userId: response.for_user_id },
+    });
     if (!user) return;
 
     for (const fav of response.favorite_events) {
       const monitor = await TweetMonitorModel.findOne({
-        tweetId: fav.favorited_status.id_str,
+        where: {
+          tweetId: fav.favorited_status.id_str,
+        },
       });
       if (!monitor) continue;
       console.log(
@@ -125,9 +139,9 @@ event.onFavorite(async (response) => {
           replyCount: fav.favorited_status.reply_count,
         })
         .execute();
-    }
 
-    lightController.update('fav');
+      lightController.update({ type: 'fav', sourceTweetId: monitor.tweetId });
+    }
   } catch (e) {
     console.error(e);
   }

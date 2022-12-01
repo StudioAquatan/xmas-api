@@ -6,7 +6,7 @@ import session from 'express-session';
 import morgan from 'morgan';
 import passport from 'passport';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
-import { createConnection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { config } from './config';
 import { deviceAPIRouter } from './device-rest';
 import { lightController } from './light-controller';
@@ -34,7 +34,7 @@ passport.use(
     },
     async (accessToken, accessSecret, profile, done) => {
       try {
-        let user = await UserModel.findOne(profile.id);
+        let user = await UserModel.findOne({ where: { userId: profile.id } });
         if (!user) {
           user = UserModel.create({
             userId: profile.id,
@@ -74,12 +74,12 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-  const user = await UserModel.findOne(id as string);
+  const user = await UserModel.findOne({ where: { userId: id as string } });
   done(null, user);
 });
 
 (async () => {
-  const connection = await createConnection({
+  const connection = new DataSource({
     entities: [
       UserModel,
       TweetMonitorModel,
@@ -141,7 +141,7 @@ passport.deserializeUser(async (id, done) => {
 
   app.listen(3000, () => console.log('Http server started'));
 
-  const user = await UserModel.findOne({ useStream: true });
+  const user = await UserModel.findOne({ where: { useStream: true } });
   if (user) {
     twitterStream.setRunnerUser(user);
     twitterStream.start();

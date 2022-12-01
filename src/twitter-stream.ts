@@ -23,7 +23,7 @@ class TwitterStream {
 
     this.stream.on(ETwitterStreamEvent.Data, async (data) => {
       if (data.retweeted_status) return;
-      const hashtags = await HashtagMonitorModel.find({ active: true });
+      const hashtags = await HashtagMonitorModel.find();
       const matchedTag = hashtags.find(({ hashtag }) =>
         data.entities.hashtags?.find(
           ({ text }) => text.replace(/#/, '') === hashtag,
@@ -50,14 +50,14 @@ class TwitterStream {
         ruleId: matchedTag.id,
       }).save();
 
-      lightController.update('hashtag');
+      lightController.update({ type: 'hashtag', sourceHashtag: matchedTag.id });
     });
 
     await this.stream.connect();
   };
 
   private getAllHashtags = async () => {
-    const hashtags = await HashtagMonitorModel.find({ active: true });
+    const hashtags = await HashtagMonitorModel.find();
 
     return hashtags.map(({ hashtag }) => hashtag);
   };
