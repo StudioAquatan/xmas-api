@@ -93,6 +93,7 @@ passport.deserializeUser(async (id, done) => {
     database: './data.db',
     synchronize: true,
   });
+  await connection.initialize();
   console.log('Database connection established');
 
   const app = express();
