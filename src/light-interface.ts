@@ -43,6 +43,17 @@ class LightInterface {
     }
   }
 
+  async updateDeviceRuleId(deviceId: string, ruleId: number) {
+    await this.coreClient.updateThing({
+      thingName: deviceId,
+      attributePayload: {
+        attributes: {
+          RuleId: ruleId.toString(),
+        },
+        merge: false,
+      },
+    });
+  }
   async applyPatternForDevice(deviceId: string, pattern: number) {
     const shadowPayload = {
       state: {
