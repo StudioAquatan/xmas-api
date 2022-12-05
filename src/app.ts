@@ -108,6 +108,7 @@ passport.deserializeUser(async (id, done) => {
     '/api',
     session({
       secret: config.sessionSecret,
+      saveUninitialized: false,
       store: new TypeormStore({
         cleanupLimit: 2,
         limitSubquery: false, // If using MariaDB.

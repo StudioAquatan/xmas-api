@@ -30,6 +30,11 @@ export const registerWebhook = async (
   const hook = list.find((item) => item.url === url);
   if (hook) return hook.id;
 
+  // Due to limited plan, remove previous webhook first
+  for (const { id } of list) {
+    await unsubscribeWebhook(user, envName, id);
+  }
+
   const response = await client.v1.post<WebhookResponse>(
     `account_activity/all/${envName}/webhooks.json`,
     { url },
@@ -41,4 +46,15 @@ export const registerWebhook = async (
 export const subscribeWebhook = async (user: UserModel, envName: string) => {
   const client = user.getClient();
   await client.v1.post(`account_activity/all/${envName}/subscriptions.json`);
+};
+
+export const unsubscribeWebhook = async (
+  user: UserModel,
+  envName: string,
+  webhookId: string,
+) => {
+  const client = user.getClient();
+  await client.v1.delete(
+    `account_activity/all/${envName}/webhooks/${webhookId}.json`,
+  );
 };
