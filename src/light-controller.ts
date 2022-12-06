@@ -1,9 +1,14 @@
 import { BaseEntity, In } from 'typeorm';
 import { lightInterface } from './light-interface';
 import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
-import { RuleModel } from './models/rule';
+import { RuleEventType, RuleModel } from './models/rule';
 
-type LightEvent = 'fav' | 'retweet' | 'reply' | 'hashtag';
+export interface LightEvent {
+  type: Exclude<RuleEventType, 'none'>;
+  sourceTweetId?: string;
+  sourceHashtag?: number;
+}
+
 class LightController {
   private ruleTimer: Map<number, NodeJS.Timeout> = new Map();
 
@@ -55,26 +60,47 @@ class LightController {
       },
     });
 
-    const { tweetIds, hashtagIds } = rules.reduce<{
-      tweetIds: string[];
-      hashtagIds: string[];
-    }>(
-      ({ tweetIds, hashtagIds }, { tweetMonitor, hashtagMonitor }) => ({
-        tweetIds: [...tweetIds, ...tweetMonitor],
-        hashtagIds: [...hashtagIds, ...hashtagMonitor],
-      }),
-      { tweetIds: [], hashtagIds: [] },
-    );
+    const eventMatchedRules = rules.filter((rule) => {
+      if (
+        event?.type === 'hashtag' &&
+        event.sourceHashtag &&
+        !rule.hasEventHashtag(event.sourceHashtag)
+      )
+        return false;
 
-    const tweets = await TweetMonitorModel.find({ tweetId: In(tweetIds) });
-    const hashtags = await HashtagMonitorModel.find({
-      id: In(hashtagIds.map((id) => Number(id))),
+      if (
+        event?.type !== 'hashtag' &&
+        event?.sourceTweetId &&
+        !rule.hasEventTweet(event.sourceTweetId)
+      )
+        return false;
+
+      return true;
     });
 
-    const matchedRule = rules.find(
-      (rule) =>
-        rule.evaluateRange(tweets, hashtags) &&
-        (rule.event == 'none' || rule.event === event),
+    const { collectTweetIds, collectHashtagIds } = eventMatchedRules.reduce<{
+      collectTweetIds: string[];
+      collectHashtagIds: string[];
+    }>(
+      (
+        { collectTweetIds, collectHashtagIds },
+        { collectTweets, collectHashtags },
+      ) => ({
+        collectTweetIds: [...collectTweetIds, ...collectTweets],
+        collectHashtagIds: [...collectHashtagIds, ...collectHashtags],
+      }),
+      { collectTweetIds: [], collectHashtagIds: [] },
+    );
+
+    const tweets = await TweetMonitorModel.find({
+      where: { tweetId: In(collectTweetIds) },
+    });
+    const hashtags = await HashtagMonitorModel.find({
+      where: { id: In(collectHashtagIds.map((id) => Number(id))) },
+    });
+
+    const matchedRule = eventMatchedRules.find((rule) =>
+      rule.evaluateRange(tweets, hashtags),
     );
 
     return matchedRule;

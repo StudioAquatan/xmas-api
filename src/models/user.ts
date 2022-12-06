@@ -16,6 +16,12 @@ export class UserModel extends BaseEntity {
   @Column('varchar', { length: 64 })
   screenName = '';
 
+  @PrimaryColumn('varchar', { length: 128 })
+  displayName = '';
+
+  @PrimaryColumn('varchar', { length: 64 })
+  iconUrl = '';
+
   @Column('boolean', { default: false })
   webhookActivated = false;
 

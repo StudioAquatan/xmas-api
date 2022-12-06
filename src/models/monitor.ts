@@ -31,9 +31,6 @@ export class HashtagMonitorModel extends BaseEntity {
 
   @Column('int')
   count = 0;
-
-  @Column('boolean')
-  active = true;
 }
 
 @Entity()

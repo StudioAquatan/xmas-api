@@ -1,69 +1,61 @@
 import { Router } from 'express';
-import Joi from 'joi';
+import z from 'zod';
 import { lightController } from './light-controller';
 import { RuleModel } from './models/rule';
 
-const ruleValidator = Joi.object<Rule>({
-  priority: Joi.number().required(),
-  event: Joi.string()
-    .valid('none', 'fav', 'retweet', 'reply', 'hashtag')
-    .required(),
-  tweetMonitor: Joi.array().items(Joi.string().regex(/^\d+$/)),
-  hashtagMonitor: Joi.array().items(Joi.number().positive().allow(0)),
-  minFav: Joi.number().positive().allow(null, 0),
-  maxFav: Joi.number().positive().allow(null, 0),
-  minRetweet: Joi.number().positive().allow(null, 0),
-  maxRetweet: Joi.number().positive().allow(null, 0),
-  minReply: Joi.number().positive().allow(null, 0),
-  maxReply: Joi.number().positive().allow(null, 0),
-  minHashtag: Joi.number().positive().allow(null, 0),
-  maxHashtag: Joi.number().positive().allow(null, 0),
-  minSum: Joi.number().positive().allow(null, 0),
-  maxSum: Joi.number().positive().allow(null, 0),
-  sumTarget: Joi.array().items(
-    Joi.string().valid('none', 'fav', 'retweet', 'reply', 'hashtag'),
-  ),
-  timeout: Joi.number().positive().allow(null, 0),
-  targetPattern: Joi.number().positive().allow(0).required(),
-});
-
-interface Rule {
-  priority: number;
-  event: 'none' | 'fav' | 'retweet' | 'reply' | 'hashtag';
-  tweetMonitor?: string[];
-  hashtagMonitor?: number[];
-  minFav?: number;
-  maxFav?: number;
-  minRetweet?: number;
-  maxRetweet?: number;
-  minReply?: number;
-  maxReply?: number;
-  minHashtag?: number;
-  maxHashtag?: number;
-  sumTarget?: Array<'fav' | 'retweet' | 'reply' | 'hashtag'>;
-  minSum?: number;
-  maxSum?: number;
-  timeout?: number;
-  targetPattern: number;
-}
+const tweetEventLiteral = z
+  .literal('fav')
+  .or(z.literal('retweet'))
+  .or(z.literal('reply'))
+  .or(z.literal('hashtag'));
+const ruleValidator = z
+  .object({
+    priority: z.number(),
+    event: z.literal('none').or(tweetEventLiteral),
+    eventTweets: z.array(z.string().regex(/^\d+$/)),
+    eventHashtags: z.array(z.number().nonnegative()),
+    collectTweets: z.array(z.string().regex(/^\d+$/)),
+    collectHashtags: z.array(z.number().nonnegative()),
+    minFav: z.number().nonnegative().nullable(),
+    maxFav: z.number().nonnegative().nullable(),
+    minRetweet: z.number().nonnegative().nullable(),
+    maxRetweet: z.number().nonnegative().nullable(),
+    minReply: z.number().nonnegative().nullable(),
+    maxReply: z.number().nonnegative().nullable(),
+    minHashtag: z.number().nonnegative().nullable(),
+    maxHashtag: z.number().nonnegative().nullable(),
+    minSum: z.number().nonnegative().nullable(),
+    maxSum: z.number().nonnegative().nullable(),
+    sumTarget: z.array(tweetEventLiteral),
+    timeout: z.number().nonnegative().nullable(),
+    targetPattern: z.number().nonnegative(),
+  })
+  .strict();
 
 export const ruleAPIRouter = Router();
 
 ruleAPIRouter.put('/rules/:ruleId', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const ruleId = Number(req.params.ruleId);
-  const rule = ruleValidator.validate(req.body, { stripUnknown: true });
-  if (rule.error || isNaN(ruleId)) {
-    return res.status(400).json(rule.error).end();
+  if (isNaN(ruleId)) {
+    res.status(400).json({ error: 'Unknown rule id' }).end();
+    return;
+  }
+  const rule = ruleValidator.safeParse(req.body);
+  if (!rule.success) {
+    res.status(400).json(rule.error).end();
+    return;
   }
 
   const dbRule = RuleModel.create({
-    ...rule.value,
+    ...rule.data,
     ruleId,
-    hashtagMonitor: rule.value.hashtagMonitor?.map((t) => t.toString()),
+    collectHashtags: rule.data.collectHashtags?.map((t) => t.toString()),
+    eventHashtags: rule.data.eventHashtags?.map((t) => t.toString()),
   });
   await dbRule.save();
 
@@ -72,7 +64,8 @@ ruleAPIRouter.put('/rules/:ruleId', async (req, res) => {
 
 ruleAPIRouter.get('/rules', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const rules: Record<number, RuleModel[]> = {};
@@ -92,7 +85,8 @@ ruleAPIRouter.get('/rules', async (req, res) => {
 
 ruleAPIRouter.post('/rules/evaluate', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   lightController.start();
@@ -102,12 +96,14 @@ ruleAPIRouter.post('/rules/evaluate', async (req, res) => {
 
 ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
-  const newRule = ruleValidator.validate(req.body, { stripUnknown: true });
-  if (newRule.error) {
-    return res.status(400).json(newRule.error).end();
+  const newRule = ruleValidator.safeParse(req.body);
+  if (!newRule.success) {
+    res.status(400).json(newRule.error).end();
+    return;
   }
 
   const rule = await RuleModel.findOne({
@@ -118,12 +114,14 @@ ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
   });
 
   if (!rule) {
-    return res.status(404).end();
+    res.status(404).end();
+    return;
   }
 
   const dbRuleValues = {
-    ...newRule.value,
-    hashtagMonitor: newRule.value.hashtagMonitor?.map((t) => t.toString()),
+    ...newRule.data,
+    collectHashtags: newRule.data.collectHashtags?.map((t) => t.toString()),
+    eventHashtags: newRule.data.eventHashtags?.map((t) => t.toString()),
   };
 
   Object.assign(rule, dbRuleValues);
@@ -135,7 +133,8 @@ ruleAPIRouter.patch('/rules/:ruleId/:uuid', async (req, res) => {
 
 ruleAPIRouter.delete('/rules/:ruleId/:uuid', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const rule = await RuleModel.findOne({
@@ -146,7 +145,8 @@ ruleAPIRouter.delete('/rules/:ruleId/:uuid', async (req, res) => {
   });
 
   if (!rule) {
-    return res.status(404).end();
+    res.status(404).end();
+    return;
   }
 
   await rule.remove();

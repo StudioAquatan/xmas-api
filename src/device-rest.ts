@@ -5,7 +5,8 @@ export const deviceAPIRouter = Router();
 
 deviceAPIRouter.get('/', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const devices = await lightInterface.getDevices();
@@ -15,20 +16,23 @@ deviceAPIRouter.get('/', async (req, res) => {
 
 deviceAPIRouter.post('/:device/:pattern', async (req, res) => {
   if (!req.user) {
-    return res.status(401).end();
+    res.status(401).end();
+    return;
   }
 
   const pattern = Number(req.params.pattern);
 
   if (isNaN(pattern) || pattern < 0) {
-    return res.status(400).end();
+    res.status(400).end();
+    return;
   }
 
   const devices = await lightInterface.getDevicesWithCache();
   const device = devices.find(({ deviceId }) => deviceId === req.params.device);
 
   if (!device) {
-    return res.status(404).end();
+    res.status(404).end();
+    return;
   }
 
   await lightInterface.applyPatternForDevice(device.deviceId, pattern);
