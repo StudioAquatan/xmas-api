@@ -23,11 +23,22 @@ restAPIRouter.get('/', async (req, res, next) => {
       return;
     }
 
+    const {
+      userId,
+      screenName,
+      displayName,
+      iconUrl,
+      webhookActivated,
+      useStream,
+    } = req.user;
+
     res.json({
-      userId: req.user.userId,
-      screenName: req.user.screenName,
-      webhookActivated: req.user.webhookActivated,
-      useStream: req.user.useStream,
+      userId,
+      screenName,
+      displayName,
+      iconUrl,
+      webhookActivated,
+      useStream,
     });
   } catch (e) {
     next(e);
