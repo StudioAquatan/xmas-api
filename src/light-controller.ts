@@ -44,7 +44,7 @@ class LightController {
           setTimeout(() => {
             this.ruleTimer.delete(ruleId);
             this.evaluateAndApplyRules();
-          }, nextRule.timeout),
+          }, nextRule.timeout * 1000),
         );
       }
 
