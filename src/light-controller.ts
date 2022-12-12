@@ -39,10 +39,10 @@ class LightController {
         continue;
       }
 
+      if (this.ruleTimer.has(ruleId)) {
+        clearTimeout(this.ruleTimer.get(ruleId)!);
+      }
       if (nextRule.timeout) {
-        if (this.ruleTimer.has(ruleId)) {
-          clearTimeout(this.ruleTimer.get(ruleId)!);
-        }
         this.ruleTimer.set(
           ruleId,
           setTimeout(() => {
