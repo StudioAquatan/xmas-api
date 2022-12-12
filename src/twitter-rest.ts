@@ -233,7 +233,7 @@ restAPIRouter.delete('/monitor/hashtag/:id', async (req, res, next) => {
       return;
     }
 
-    await rule.save();
+    await rule.remove();
 
     res.status(200).end();
   } catch (e) {
