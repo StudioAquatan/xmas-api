@@ -41,6 +41,8 @@ passport.use(
             accessToken,
             accessSecret,
             screenName: profile.username,
+            displayName: profile.displayName,
+            iconUrl: profile.photos?.at(0)?.value,
           });
         }
         user.accessToken = accessToken;
