@@ -8,29 +8,27 @@ const tweetEventLiteral = z
   .or(z.literal('retweet'))
   .or(z.literal('reply'))
   .or(z.literal('hashtag'));
-const ruleValidator = z
-  .object({
-    priority: z.number(),
-    event: z.literal('none').or(tweetEventLiteral),
-    eventTweets: z.array(z.string().regex(/^\d+$/)),
-    eventHashtags: z.array(z.number().nonnegative()),
-    collectTweets: z.array(z.string().regex(/^\d+$/)),
-    collectHashtags: z.array(z.number().nonnegative()),
-    minFav: z.number().nonnegative().nullable(),
-    maxFav: z.number().nonnegative().nullable(),
-    minRetweet: z.number().nonnegative().nullable(),
-    maxRetweet: z.number().nonnegative().nullable(),
-    minReply: z.number().nonnegative().nullable(),
-    maxReply: z.number().nonnegative().nullable(),
-    minHashtag: z.number().nonnegative().nullable(),
-    maxHashtag: z.number().nonnegative().nullable(),
-    minSum: z.number().nonnegative().nullable(),
-    maxSum: z.number().nonnegative().nullable(),
-    sumTarget: z.array(tweetEventLiteral),
-    timeout: z.number().nonnegative().nullable(),
-    targetPattern: z.number().nonnegative(),
-  })
-  .strict();
+const ruleValidator = z.object({
+  priority: z.number(),
+  event: z.literal('none').or(tweetEventLiteral),
+  eventTweets: z.array(z.string().regex(/^\d+$/)),
+  eventHashtags: z.array(z.number().nonnegative()),
+  collectTweets: z.array(z.string().regex(/^\d+$/)),
+  collectHashtags: z.array(z.number().nonnegative()),
+  minFav: z.number().nonnegative().nullable(),
+  maxFav: z.number().nonnegative().nullable(),
+  minRetweet: z.number().nonnegative().nullable(),
+  maxRetweet: z.number().nonnegative().nullable(),
+  minReply: z.number().nonnegative().nullable(),
+  maxReply: z.number().nonnegative().nullable(),
+  minHashtag: z.number().nonnegative().nullable(),
+  maxHashtag: z.number().nonnegative().nullable(),
+  minSum: z.number().nonnegative().nullable(),
+  maxSum: z.number().nonnegative().nullable(),
+  sumTarget: z.array(tweetEventLiteral),
+  timeout: z.number().nonnegative().nullable(),
+  targetPattern: z.number().nonnegative(),
+});
 
 export const ruleAPIRouter = Router();
 

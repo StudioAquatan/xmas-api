@@ -1,5 +1,11 @@
 import { ISession } from 'connect-typeorm';
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  PrimaryColumn,
+} from 'typeorm';
 
 @Entity()
 export class SessionModel implements ISession {
@@ -12,4 +18,7 @@ export class SessionModel implements ISession {
 
   @Column('text')
   public json = '';
+
+  @DeleteDateColumn()
+  public destroyedAt?: Date;
 }

@@ -16,9 +16,8 @@ export const config = {
     allowedId: (process.env.TWITTER_ALLOWED_ID ?? '').split(/,/),
   },
   iot: {
-    projectId: process.env.GOOGLE_PROJECT_ID ?? '',
-    region: process.env.GOOGLE_PROJECT_REGION ?? '',
-    registry: process.env.GOOGLE_IOT_REGISTRY ?? '',
+    region: process.env.AWS_REGION ?? 'ap-northeast-1',
+    dataEndpoint: process.env.AWS_IOT_DATA_ENDPOINT ?? '',
   },
   sessionSecret: process.env.SESSION_SECRET ?? 'nyancat',
 };

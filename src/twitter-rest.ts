@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { config } from './config';
-import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
+import {
+  HashtagMonitorModel,
+  HashtagTweet,
+  TweetMonitorModel,
+} from './models/monitor';
 import { RuleModel } from './models/rule';
 import { UserModel } from './models/user';
 import { twitterStream } from './twitter-stream';
@@ -19,11 +23,22 @@ restAPIRouter.get('/', async (req, res, next) => {
       return;
     }
 
+    const {
+      userId,
+      screenName,
+      displayName,
+      iconUrl,
+      webhookActivated,
+      useStream,
+    } = req.user;
+
     res.json({
-      userId: req.user.userId,
-      screenName: req.user.screenName,
-      webhookActivated: req.user.webhookActivated,
-      useStream: req.user.useStream,
+      userId,
+      screenName,
+      displayName,
+      iconUrl,
+      webhookActivated,
+      useStream,
     });
   } catch (e) {
     next(e);
@@ -162,6 +177,31 @@ restAPIRouter.get('/monitor/hashtag', async (req, res, next) => {
 
     const rules = await HashtagMonitorModel.find();
     res.json(rules.map((rule) => rule));
+  } catch (e) {
+    next(e);
+  }
+});
+
+restAPIRouter.get('/monitor/hashtag/:id', async (req, res, next) => {
+  try {
+    if (!req.user) {
+      res.status(401).end();
+      return;
+    }
+
+    const ruleId = Number(req.params.id);
+    if (isNaN(ruleId)) {
+      res.status(400).end();
+      return;
+    }
+
+    const tweets = await HashtagTweet.find({ where: { ruleId } });
+    if (!tweets) {
+      res.status(404).end();
+      return;
+    }
+
+    res.json(tweets);
   } catch (e) {
     next(e);
   }

@@ -1,55 +1,34 @@
-import { v1 as iot } from '@google-cloud/iot';
+import { IoT } from '@aws-sdk/client-iot';
+import { IoTDataPlane } from '@aws-sdk/client-iot-data-plane';
 import { config } from './config';
 
 interface DeviceInfo {
   ruleId?: number;
   deviceId: string;
   patternId: number;
-  lastConfigAck?: Date | null;
-  lastHeartbeat?: Date | null;
 }
 class LightInterface {
-  private client: iot.DeviceManagerClient;
+  private coreClient: IoT;
+  private dpClient: IoTDataPlane;
   private deviceCache: DeviceInfo[] = [];
   private deviceCacheLastModified = 0;
 
   constructor() {
-    this.client = new iot.DeviceManagerClient({
-      projectId: config.iot.projectId,
+    this.coreClient = new IoT({ region: config.iot.region });
+    this.dpClient = new IoTDataPlane({
+      region: config.iot.region,
+      endpoint: config.iot.dataEndpoint,
     });
   }
 
   async getDevices(): Promise<DeviceInfo[]> {
-    const registryPath = this.client.registryPath(
-      config.iot.projectId,
-      config.iot.region,
-      config.iot.registry,
-    );
-    const [devices] = await this.client.listDevices({
-      pageSize: 50,
-      parent: registryPath,
-      fieldMask: {
-        paths: [
-          'metadata',
-          'config',
-          'last_config_ack_time',
-          'last_heartbeat_time',
-        ],
-      },
-    });
+    const thingsResponse = await this.coreClient.listThings({ maxResults: 50 });
+    const things = thingsResponse.things ?? [];
 
-    this.deviceCache = devices.map((device) => ({
-      deviceId: device.id!,
-      ruleId: Number(device.metadata?.ruleId ?? -1),
-      patternId: device.config?.binaryData
-        ? Number(Buffer.from(device.config?.binaryData).toString('utf-8'))
-        : -1,
-      lastConfigAck: device.lastConfigAckTime?.seconds
-        ? new Date(Number(device.lastConfigAckTime?.seconds) * 1000)
-        : null,
-      lastHeartbeat: device.lastHeartbeatTime?.seconds
-        ? new Date(Number(device.lastHeartbeatTime?.seconds) * 1000)
-        : null,
+    this.deviceCache = things.map((device) => ({
+      deviceId: device.thingName!,
+      ruleId: Number(device.attributes?.RuleId ?? -1),
+      patternId: -1,
     }));
     this.deviceCacheLastModified = Date.now();
 
@@ -64,18 +43,28 @@ class LightInterface {
     }
   }
 
+  async updateDeviceRuleId(deviceId: string, ruleId: number) {
+    await this.coreClient.updateThing({
+      thingName: deviceId,
+      attributePayload: {
+        attributes: {
+          RuleId: ruleId.toString(),
+        },
+        merge: false,
+      },
+    });
+  }
   async applyPatternForDevice(deviceId: string, pattern: number) {
-    const devicePath = this.client.devicePath(
-      config.iot.projectId,
-      config.iot.region,
-      config.iot.registry,
-      deviceId,
-    );
-
-    await this.client.modifyCloudToDeviceConfig({
-      name: devicePath,
-      binaryData: Buffer.from(pattern.toString(), 'utf8').toString('base64'),
-      versionToUpdate: 0,
+    const shadowPayload = {
+      state: {
+        desired: {
+          patternId: pattern,
+        },
+      },
+    };
+    await this.dpClient.updateThingShadow({
+      thingName: deviceId,
+      payload: Buffer.from(JSON.stringify(shadowPayload), 'utf-8'),
     });
   }
 

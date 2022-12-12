@@ -93,6 +93,7 @@ passport.deserializeUser(async (id, done) => {
     database: './data.db',
     synchronize: true,
   });
+  await connection.initialize();
   console.log('Database connection established');
 
   const app = express();
@@ -107,6 +108,7 @@ passport.deserializeUser(async (id, done) => {
     '/api',
     session({
       secret: config.sessionSecret,
+      saveUninitialized: false,
       store: new TypeormStore({
         cleanupLimit: 2,
         limitSubquery: false, // If using MariaDB.
