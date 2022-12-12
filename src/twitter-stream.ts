@@ -29,7 +29,7 @@ class TwitterStream {
           ({ text }) => text.replace(/#/, '') === hashtag,
         ),
       );
-      if (!matchedTag) return;
+      if (typeof matchedTag?.id !== 'number') return;
 
       console.log('hashtag increase', matchedTag.hashtag);
 

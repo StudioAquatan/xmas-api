@@ -3,11 +3,15 @@ import { lightInterface } from './light-interface';
 import { HashtagMonitorModel, TweetMonitorModel } from './models/monitor';
 import { RuleEventType, RuleModel } from './models/rule';
 
-export interface LightEvent {
-  type: Exclude<RuleEventType, 'none'>;
-  sourceTweetId?: string;
-  sourceHashtag?: number;
-}
+export type LightEvent =
+  | {
+      type: 'hashtag';
+      sourceHashtag: number;
+    }
+  | {
+      type: Exclude<RuleEventType, 'none' | 'hashtag'>;
+      sourceTweetId: string;
+    };
 
 class LightController {
   private ruleTimer: Map<number, NodeJS.Timeout> = new Map();
@@ -61,21 +65,29 @@ class LightController {
     });
 
     const eventMatchedRules = rules.filter((rule) => {
-      if (
-        event?.type === 'hashtag' &&
-        event.sourceHashtag &&
-        !rule.hasEventHashtag(event.sourceHashtag)
-      )
-        return false;
+      switch (rule.event) {
+        case 'none':
+          return true;
 
-      if (
-        event?.type !== 'hashtag' &&
-        event?.sourceTweetId &&
-        !rule.hasEventTweet(event.sourceTweetId)
-      )
-        return false;
+        case 'fav':
+          return (
+            event?.type === 'fav' && rule.hasEventTweet(event.sourceTweetId)
+          );
+        case 'retweet':
+          return (
+            event?.type === 'retweet' && rule.hasEventTweet(event.sourceTweetId)
+          );
+        case 'reply':
+          return (
+            event?.type === 'reply' && rule.hasEventTweet(event.sourceTweetId)
+          );
 
-      return true;
+        case 'hashtag':
+          return (
+            event?.type === 'hashtag' &&
+            rule.hasEventHashtag(event.sourceHashtag)
+          );
+      }
     });
 
     const { collectTweetIds, collectHashtagIds } = eventMatchedRules.reduce<{
