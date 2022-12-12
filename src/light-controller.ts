@@ -67,7 +67,7 @@ class LightController {
     const eventMatchedRules = rules.filter((rule) => {
       switch (rule.event) {
         case 'none':
-          return true;
+          return !event;
 
         case 'fav':
           return (
