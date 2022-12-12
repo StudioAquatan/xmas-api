@@ -111,11 +111,21 @@ class LightController {
       where: { id: In(collectHashtagIds.map((id) => Number(id))) },
     });
 
-    const matchedRule = eventMatchedRules.find((rule) =>
+    const matchedRules = eventMatchedRules.filter((rule) =>
       rule.evaluateRange(tweets, hashtags),
     );
+    const highestPriority = Math.max(
+      ...matchedRules.map(({ priority }) => priority),
+      0,
+    );
+    const prioritizedRules = matchedRules.filter(
+      ({ priority }) => priority === highestPriority,
+    );
+    if (prioritizedRules.length === 0) return null;
 
-    return matchedRule;
+    return prioritizedRules[
+      Math.floor(Math.random() * prioritizedRules.length)
+    ];
   }
 }
 
