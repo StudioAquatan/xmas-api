@@ -111,6 +111,9 @@ passport.deserializeUser(async (id, done) => {
     session({
       secret: config.sessionSecret,
       saveUninitialized: false,
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+      },
       store: new TypeormStore({
         cleanupLimit: 2,
         limitSubquery: false, // If using MariaDB.
