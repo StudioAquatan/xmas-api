@@ -50,7 +50,7 @@ class LightInterface {
   }
 
   async getDevicesWithCache() {
-    if (Date.now() - this.deviceCacheLastModified > 1000 * 60 * 10) {
+    if (Date.now() - this.deviceCacheLastModified > 1000 * 60) {
       return await this.getDevices();
     } else {
       return this.deviceCache;
@@ -87,7 +87,10 @@ class LightInterface {
     const matchedDevices = devices.filter((device) => device.ruleId === ruleId);
 
     for (const device of matchedDevices) {
-      await this.applyPatternForDevice(device.deviceId, pattern);
+      if (device.connect.connected && device.patternId !== pattern) {
+        await this.applyPatternForDevice(device.deviceId, pattern);
+        device.patternId = pattern;
+      }
     }
   }
 
