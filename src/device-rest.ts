@@ -97,7 +97,7 @@ const uploader = multer({
 });
 
 deviceAPIRouter.post(
-  '/device/:deviceId/ota',
+  '/:deviceId/ota',
   async (req, res, next) => {
     if (!req.user) {
       res.status(401).end();
@@ -106,7 +106,7 @@ deviceAPIRouter.post(
 
     const devices = await lightInterface.getDevicesWithCache();
     const device = devices.find(
-      ({ deviceId }) => deviceId === req.params.device,
+      ({ deviceId }) => deviceId === req.params.deviceId,
     );
 
     if (!device) {
