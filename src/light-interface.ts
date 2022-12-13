@@ -76,6 +76,16 @@ class LightInterface {
       await this.applyPatternForDevice(device.deviceId, pattern);
     }
   }
+
+  async requestOTA(deviceId: string) {
+    const topic = `${deviceId}/OTA/request`;
+    const body = JSON.stringify({ state: 'Request' });
+
+    await this.dpClient.publish({
+      topic,
+      payload: Buffer.from(body, 'utf-8'),
+    });
+  }
 }
 
 export const lightInterface = new LightInterface();
