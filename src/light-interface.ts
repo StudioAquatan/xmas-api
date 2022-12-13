@@ -6,6 +6,11 @@ interface DeviceInfo {
   ruleId?: number;
   deviceId: string;
   patternId: number;
+  connect: {
+    connected?: boolean;
+    timestamp?: number;
+    disconnectReason?: string;
+  };
 }
 class LightInterface {
   private coreClient: IoT;
@@ -22,13 +27,22 @@ class LightInterface {
   }
 
   async getDevices(): Promise<DeviceInfo[]> {
-    const thingsResponse = await this.coreClient.listThings({ maxResults: 50 });
+    const thingsResponse = await this.coreClient.searchIndex({
+      indexName: 'AWS_Things',
+      queryString: 'thingName:*',
+    });
     const things = thingsResponse.things ?? [];
 
     this.deviceCache = things.map((device) => ({
       deviceId: device.thingName!,
       ruleId: Number(device.attributes?.RuleId ?? -1),
-      patternId: -1,
+      patternId: (JSON.parse(device.shadow ?? '{}')?.desired?.patternId ??
+        0) as number,
+      connect: {
+        connected: device.connectivity?.connected ?? false,
+        timestamp: device.connectivity?.timestamp ?? 0,
+        disconnectReason: device.connectivity?.disconnectReason ?? '',
+      },
     }));
     this.deviceCacheLastModified = Date.now();
 
