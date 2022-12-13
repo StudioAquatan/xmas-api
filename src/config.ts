@@ -18,6 +18,7 @@ export const config = {
   iot: {
     region: process.env.AWS_REGION ?? 'ap-northeast-1',
     dataEndpoint: process.env.AWS_IOT_DATA_ENDPOINT ?? '',
+    otaS3Bucket: process.env.AWS_S3_BUCKET ?? '',
   },
   sessionSecret: process.env.SESSION_SECRET ?? 'nyancat',
 };
