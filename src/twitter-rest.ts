@@ -52,13 +52,23 @@ restAPIRouter.put('/webhook', async (req, res, next) => {
       return;
     }
 
+    const user =
+      typeof req.query.userId === 'string'
+        ? await UserModel.findOne({ where: { userId: req.query.userId } })
+        : req.user;
+
+    if (!user) {
+      res.status(404).end();
+      return;
+    }
+
     const id = await registerWebhook(
-      req.user,
+      user,
       config.twitter.webhookEnv,
       config.twitter.webhookUrl,
     );
     console.log('webhook id', id);
-    await subscribeWebhook(req.user, config.twitter.webhookEnv);
+    await subscribeWebhook(user, config.twitter.webhookEnv);
 
     res.status(200).end();
   } catch (e) {
